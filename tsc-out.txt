@@ -1,0 +1,7 @@
+src/components/TicketCreationModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/visitor/VisitorEvents.tsx(3,28): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/pages/visitor/VisitorSignup.tsx(1,10): error TS6133: 'useMemo' is declared but its value is never read.
+src/pages/visitor/VisitorSignup.tsx(2,10): error TS6133: 'Link' is declared but its value is never read.
+src/pages/visitor/VisitorSignup.tsx(3,1): error TS6192: All imports in import declaration are unused.
+src/pages/volunteer/VolunteerDashboard.tsx(3,28): error TS6133: 'History' is declared but its value is never read.
+src/pages/volunteer/VolunteerOnSpotRegistration.tsx(4,21): error TS6133: 'UserPlus' is declared but its value is never read.
