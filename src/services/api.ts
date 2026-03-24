@@ -76,6 +76,10 @@ export interface OtpVerifyResponse {
     visitorId: string;
     name?: string;
     mobileNumber?: string;
+    age?: string;
+    gender?: string;
+    city?: string;
+    email?: string;
   };
   registration: any;
 }
@@ -105,7 +109,7 @@ export interface TicketsResponse {
     childId?: string | null;
     qrToken: string;
     status?: string;
-    name?: string; // in case frontend overrides it
+    holderName?: string; // in case frontend overrides it
   }>;
   event?: {
     eventId: string;
@@ -345,7 +349,7 @@ class ApiService {
   }
 
   async requestOtp(payload: OtpRequestPayload, eventSlug?: string) {
-    return httpJson<{ success: boolean; ttlSeconds: number }>(`${AUTH_BASE_URL}/auth/otp/request`, {
+    return httpJson<{ return: boolean; message: string; status_code: number }>(`${AUTH_BASE_URL}/auth/otp/request`, {
       method: "POST",
       headers: { ...this.eventHeader(eventSlug) },
       body: payload,

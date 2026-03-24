@@ -19,6 +19,8 @@ export default function VisitorLogin() {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
   const { eventId } = useParams();
@@ -58,14 +60,17 @@ export default function VisitorLogin() {
     setError("");
     setLoading(true);
     try {
-      console.log(eventId)
       const fullMobile = `${countryCode}${mobileNumber}`;
-      await apiService.requestOtp({
+      const response = await apiService.requestOtp({
         mobileNumber: fullMobile,
         purpose: "visitor_registration",
       }, eventId);
+      if(response.return == false) {
+        setError(response.message)
+      } else {
       setStep("otp");
       setResendTimer(30);
+      }
     } catch (e) {
       const message =
         e && typeof e === "object" && "message" in e
@@ -77,61 +82,80 @@ export default function VisitorLogin() {
     }
   };
 
-  const verifyOtp = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const fullMobile = `${countryCode}${mobileNumber}`;
-      const res = await apiService.verifyOtp({ mobileNumber: fullMobile, otp: otpValue }, eventId);
-      localStorage.setItem("visitor_mobile", fullMobile);
+  const storeVisitor = (visitor: any) => {
+  if (!visitor) return;
 
-      if (res.case === "new_visitor" || res.case === "existing_visitor_new_event") {
-        if (res.visitor) {
-          localStorage.setItem("visitor_name", res.visitor.name || "");
-          localStorage.setItem("visitor_mobile", res.visitor.mobileNumber || "");
-        }
-        
-        if (res.case === "existing_visitor_new_event") {
-          if (eventId) {
-            navigate(`/visitor/events/${eventId}?autoCreate=true`);
-          } else {
-            navigate("/visitor/events");
-          }
-        } else {
-          navigate("/visitor/signup");
-        }
-      } else if (res.case === "already_registered") {
-        if (res.registration) {
-          localStorage.setItem(
-            "visitor_last_registration_id",
-            res.registration.id || res.registration.registrationId || res.registration
-          );
-        }
-        navigate("/visitor/tickets");
-      } else {
-        if (res.registration) {
-          localStorage.setItem(
-            "visitor_last_registration_id",
-            res.registration.id || res.registration.registrationId || res.registration
-          );
-        }
-        if (!eventId) {
-          navigate("/visitor/events");
-        } else {
-          // If we somehow get here, just direct them to the event or tickets
-          navigate(`/visitor/events/${eventId}`);
-        }
-      }
-    } catch (e) {
-      const message =
-        e && typeof e === "object" && "message" in e
-          ? String((e as { message?: unknown }).message)
-          : "OTP verification failed";
-      setError(message);
-    } finally {
-      setLoading(false);
+  const mobile = visitor.mobileNumber
+    ? visitor.mobileNumber.startsWith("+")
+      ? visitor.mobileNumber
+      : `+${visitor.mobileNumber}`
+    : "";
+
+  localStorage.setItem("visitor_name", visitor.name || "");
+  localStorage.setItem("visitor_mobile", mobile);
+
+  if (visitor.age) localStorage.setItem("visitor_age", visitor.age);
+  if (visitor.gender) localStorage.setItem("visitor_gender", visitor.gender);
+  if (visitor.city) localStorage.setItem("visitor_city", visitor.city);
+  if (visitor.email) localStorage.setItem("visitor_email", visitor.email);
+};
+
+const storeRegistration = (registration: any) => {
+  if (!registration) return;
+
+  localStorage.setItem(
+    "visitor_last_registration_id",
+    registration.id || registration.registrationId || registration
+  );
+};
+
+
+ const verifyOtp = async () => {
+  setError("");
+  setVerifying(true);
+
+  try {
+    const fullMobile = `${countryCode}${mobileNumber}`;
+    const formattedMobile = fullMobile.startsWith("+")
+      ? fullMobile
+      : `+${fullMobile}`;
+
+    const res = await apiService.verifyOtp(
+      { mobileNumber: formattedMobile, otp: otpValue },
+      eventId
+    );
+
+    // Always store formatted mobile
+    localStorage.setItem("visitor_mobile", formattedMobile);
+
+    // Common logic
+    storeVisitor(res.visitor);
+    storeRegistration(res.registration);
+
+    if (res.case === "new_visitor") {
+      navigate("/visitor/signup");
+    } else if (res.case === "existing_visitor_new_event") {
+      navigate(
+        eventId
+          ? `/visitor/events/${eventId}?autoCreate=true`
+          : "/visitor/events"
+      );
+    } else if (res.case === "already_registered") {
+      navigate("/visitor/tickets");
+    } else {
+      navigate(eventId ? `/visitor/events/${eventId}` : "/visitor/events");
     }
-  };
+  } catch (e) {
+    const message =
+      e && typeof e === "object" && "message" in e
+        ? String((e as { message?: unknown }).message)
+        : "OTP verification failed";
+
+    setError(message);
+  } finally {
+    setVerifying(false); // fixed
+  }
+};
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -353,7 +377,7 @@ export default function VisitorLogin() {
                       inputMode="numeric"
                       maxLength={1}
                       className="h-12 w-10 sm:h-14 sm:w-12 rounded-xl border-2 border-gray-200 bg-gray-50 text-center text-xl font-bold text-gray-900 transition-all focus:border-[#B30447] focus:bg-white focus:outline-none focus:ring-4 focus:ring-rose-50"
-                      disabled={loading}
+                      disabled={verifying || resending}
                     />
                   ))}
                 </div>
@@ -368,20 +392,20 @@ export default function VisitorLogin() {
                   <button
                     onClick={() => void verifyOtp()}
                     disabled={
-                      loading || otpValue.length !== 6 || otp.some((x) => !x)
+                      verifying || otpValue.length !== 6 || otp.some((x) => !x)
                     }
                     className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#B30447] px-4 py-3.5 text-base font-bold text-white shadow-lg shadow-rose-200 transition-all hover:bg-[#9a033c] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-rose-100 disabled:opacity-50 disabled:shadow-none"
                   >
                     <ShieldCheck className="h-5 w-5" />
-                    {loading ? "Verifying…" : "Verify OTP"}
+                    {verifying ? "Verifying…" : "Verify OTP"}
                   </button>
 
                   <button
                     onClick={() => void resend()}
-                    disabled={loading || resendTimer > 0}
+                    disabled={resending || resendTimer > 0}
                     className="w-full inline-flex items-center justify-center gap-2 rounded-xl border-2 border-transparent bg-transparent px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   >
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${resending ? 'animate-spin' : ''}`} />
                     {resendTimer > 0
                       ? `Resend OTP in ${resendTimer}s`
                       : "Resend OTP"}

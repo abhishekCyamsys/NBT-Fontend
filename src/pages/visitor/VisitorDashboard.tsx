@@ -18,6 +18,15 @@ export default function VisitorDashboard() {
 
   const logout = () => {
     localStorage.removeItem('visitor_jwt');
+    localStorage.removeItem('visitor_name');
+    localStorage.removeItem('visitor_mobile');
+    localStorage.removeItem('visitor_age');
+    localStorage.removeItem('visitor_gender');
+    localStorage.removeItem('visitor_city');
+    localStorage.removeItem('visitor_email');
+    localStorage.removeItem('visitor_last_registration_id');
+    localStorage.removeItem('visitor_current_event_id');
+    localStorage.removeItem('visitor_jwt');
     navigate('/');
   };
 

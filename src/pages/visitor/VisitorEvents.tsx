@@ -26,15 +26,18 @@ export default function VisitorEvents() {
 
   const handleCreateTicket = async (event: VisitorEvent) => {
     try {
-      setRegisteringEvent(event.id);
+      setRegisteringEvent(event.id || event.eventId);
       setError('');
       // Single-click ticket creation
       const res = await apiService.registerVisitor({
         name: localStorage.getItem("visitor_name") || "Visitor", 
         mobileNumber: localStorage.getItem("visitor_mobile") || "",
-        age: "20-30",
+        age: localStorage.getItem("visitor_age") || "18-24",
+        gender: (localStorage.getItem("visitor_gender") || "m") as any,
+        email: localStorage.getItem("visitor_email") || undefined,
+        city: localStorage.getItem("visitor_city") || undefined,
         otpVerified: true
-      }, event.slug || event.id);
+      }, event.slug || event.id || event.eventId);
       localStorage.setItem("visitor_last_registration_id", res.registrationId);
       navigate('/visitor/tickets', { 
         state: { 
@@ -49,7 +52,7 @@ export default function VisitorEvents() {
            } 
          });
       } else {
-        setError(e.message || "Failed to create ticket");
+        setError(e.message || "Failed to book ticket");
       }
     } finally {
       if (!window.location.pathname.includes('/tickets')) {
@@ -86,7 +89,7 @@ export default function VisitorEvents() {
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {events.map((e) => (
-            <div key={e.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+            <div key={e.id || e.eventId} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
               {e.bannerUrl ? (
                 <img src={bookImg} alt={e.name} className="h-40 w-full object-cover" />
               ) : (
@@ -108,12 +111,12 @@ export default function VisitorEvents() {
                 <div className="mt-5 flex gap-3">
                   <button
                     onClick={() => handleCreateTicket(e)}
-                    disabled={registeringEvent === e.id}
+                    disabled={registeringEvent === (e.id || e.eventId)}
                     className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-[#B30447] px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-[#9a033c] disabled:opacity-50"
                   >
-                    {registeringEvent === e.id ? 'Loading...' : 'Create Ticket'}
+                    {registeringEvent === (e.id || e.eventId) ? 'Loading...' : 'Book Ticket'}
                   </button>
-                  <button onClick={() => navigate(`/visitor/events/${e.slug || e.id}`)} className="flex-1 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50">
+                  <button onClick={() => navigate(`/visitor/events/${e.slug || e.id || e.eventId}`)} className="flex-1 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50">
                     View Details
                   </button>
                 </div>

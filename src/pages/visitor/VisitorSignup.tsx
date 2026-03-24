@@ -36,6 +36,9 @@ export default function VisitorSignup() {
       }, eventId);
 
       localStorage.setItem('visitor_last_registration_id', res.registrationId);
+      localStorage.setItem('visitor_name', form.name.trim());
+      localStorage.setItem('visitor_age', form.age);
+      localStorage.setItem('visitor_gender', form.gender.toLowerCase());
       navigate('/visitor/tickets');
     } catch (e) {
       const message =

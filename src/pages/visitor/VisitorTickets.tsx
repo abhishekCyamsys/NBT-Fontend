@@ -230,13 +230,16 @@ export default function VisitorTickets() {
                           {t.ticketNumber && <p className="text-[11px] text-gray-400 font-mono tracking-widest">{t.ticketNumber}</p>}
                         </div>
 
-                        <div className="mt-6 space-y-4">
+                        <div className="mt-6">
                           <div className="flex items-center justify-between border-t border-gray-100 pt-4">
                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendee</p>
                             <span className={`inline-flex rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${t.ticketType === 'child' ? 'bg-indigo-50 text-indigo-700' : 'bg-rose-50 text-[#B30447]'}`}>
                               {t.ticketType || 'Parent'}
                             </span>
-                          </div>
+
+                          </div> <p className="font-bold text-gray-900 text-xl leading-none capitalize">
+                             {t.holderName && t.holderName}
+                          </p>
                           
                           {(data.event?.venue || data.event?.location || data.event?.startDate) && (
                             <div className="mt-4 bg-gray-50 rounded-xl p-4 space-y-3">
@@ -267,7 +270,7 @@ export default function VisitorTickets() {
                     <div data-html2canvas-ignore="true" className="bg-gray-50/80 p-4 text-center">
                       <button onClick={() => downloadTicket(t.ticketId)} className="w-full justify-center text-sm font-bold text-[#B30447] hover:text-[#9a033c] transition inline-flex items-center gap-2">
                          <Download className="w-4 h-4" />
-                         Save to Device
+                         Save
                       </button>
                     </div>
                   </div>

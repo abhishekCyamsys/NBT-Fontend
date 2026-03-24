@@ -36,7 +36,10 @@ export default function VisitorEventDetails() {
       const res = await apiService.registerVisitor({
         name: localStorage.getItem("visitor_name") || "Visitor", 
         mobileNumber: localStorage.getItem("visitor_mobile") || "",
-        age: "20-30",
+        age: localStorage.getItem("visitor_age") || "18-24",
+        gender: (localStorage.getItem("visitor_gender") || "m") as any,
+        email: localStorage.getItem("visitor_email") || undefined,
+        city: localStorage.getItem("visitor_city") || undefined,
         otpVerified: true
       }, slug);
       
@@ -54,7 +57,7 @@ export default function VisitorEventDetails() {
            } 
          });
       } else {
-        setError(e.message || "Failed to create ticket");
+        setError(e.message || "Failed to book ticket");
       }
     } finally {
       if (!window.location.pathname.includes('/tickets')) {
@@ -111,7 +114,7 @@ export default function VisitorEventDetails() {
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#B30447] px-6 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-[#9a033c] hover:shadow-xl focus:ring-4 focus:ring-rose-100 disabled:opacity-50"
             >
               <Ticket className="h-5 w-5" />
-              {creatingTicket ? 'Processing...' : 'Create Ticket'}
+              {creatingTicket ? 'Processing...' : 'Book Ticket'}
             </button>
           </div>
 
@@ -146,7 +149,7 @@ export default function VisitorEventDetails() {
                    <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-[#B30447]" /> Skip the queues</li>
                  </ul>
                  <button onClick={handleCreateTicket} disabled={creatingTicket} className="w-full justify-center inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-bold text-[#B30447] shadow-sm hover:bg-rose-50 border border-[#B30447] disabled:opacity-50">
-                   {creatingTicket ? 'Processing...' : 'Create Ticket'}
+                   {creatingTicket ? 'Processing...' : 'Book Ticket'}
                  </button>
               </div>
             </div>

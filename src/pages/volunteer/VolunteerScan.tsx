@@ -52,8 +52,9 @@ export default function VolunteerScan() {
       .then((data) => {
          setEvents(data);
          if (data.length > 0 && !eventId) {
-           setEventId(data[0].id);
-           localStorage.setItem('scan_event_id', data[0].id);
+           const eid = data[0].id || data[0].eventId;
+           setEventId(eid);
+           localStorage.setItem('scan_event_id', eid);
          }
       })
       .catch((err) => console.error("Failed to fetch events", err));
@@ -235,7 +236,7 @@ export default function VolunteerScan() {
               >
                 <option value="">Select an Event</option>
                 {events.map((ev) => (
-                  <option key={ev.id} value={ev.id}>{ev.slug || ev.name}</option>
+                  <option key={ev.id || ev.eventId} value={ev.id || ev.eventId}>{ev.slug || ev.name}</option>
                 ))}
               </select>
               <p className="mt-1 text-xs text-gray-500">Required by backend for scan validation.</p>
