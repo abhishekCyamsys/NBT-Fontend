@@ -93,7 +93,7 @@ export default function VisitorEventDetails() {
 
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl">
         {eventData.bannerUrl ? (
-          <img src={bookImg} alt={eventData.eventName} className="h-64 sm:h-80 w-full object-cover" />
+          <img src={eventData.bannerUrl} alt={eventData.eventName} className="h-64 sm:h-80 w-full object-cover" />
         ) : (
           <img src={bookImg} alt={eventData.eventName} className="h-64 sm:h-80 w-full object-cover" />
         )}

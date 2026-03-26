@@ -91,7 +91,7 @@ export default function VisitorEvents() {
           {events.map((e) => (
             <div key={e.id || e.eventId} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
               {e.bannerUrl ? (
-                <img src={bookImg} alt={e.name} className="h-40 w-full object-cover" />
+                <img src={e.bannerUrl} alt={e.name} className="h-40 w-full object-cover" />
               ) : (
                 <img src={bookImg} alt={e.name} className="h-40 w-full object-cover" />
                 // <div className="h-40 w-full bg-gradient-to-br from-[#B30447] to-[#7a0230] opacity-90 mix-blend-multiply" />
