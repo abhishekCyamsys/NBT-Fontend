@@ -192,6 +192,7 @@ export default function EventsPage() {
                         </span>
                       )}
                     </h3>
+                    <p className="mt-1 text-xs text-gray-500">slug: {e.slug}</p>
                     <p className="mt-1 text-xs text-gray-600">{e.venue ? `${e.venue}, ` : ''}{e.location}</p>
                     <p className="mt-1 text-xs text-gray-500">
                       {new Date(e.startDate).toLocaleString()} – {new Date(e.endDate).toLocaleString()}
