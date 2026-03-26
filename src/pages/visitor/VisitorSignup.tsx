@@ -31,14 +31,14 @@ export default function VisitorSignup() {
         name: form.name.trim(),
         mobileNumber,
         age: form.age,
-        gender: form.gender.toLowerCase() as any,
+        gender: form.gender.toUpperCase() as any,
         otpVerified: true,
       }, eventId);
 
       localStorage.setItem('visitor_last_registration_id', res.registrationId);
       localStorage.setItem('visitor_name', form.name.trim());
       localStorage.setItem('visitor_age', form.age);
-      localStorage.setItem('visitor_gender', form.gender.toLowerCase());
+      localStorage.setItem('visitor_gender', form.gender.toUpperCase());
       navigate('/visitor/tickets');
     } catch (e) {
       const message =
