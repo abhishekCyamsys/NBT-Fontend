@@ -65,11 +65,11 @@ export default function VisitorLogin() {
         mobileNumber: fullMobile,
         purpose: "visitor_registration",
       }, eventId);
-      if(response.return == false) {
-        setError(response.message)
+      if(response.success) {
+        setStep("otp");
+        setResendTimer(30);
       } else {
-      setStep("otp");
-      setResendTimer(30);
+        setError(response.message)
       }
     } catch (e) {
       const message =

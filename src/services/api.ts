@@ -349,7 +349,7 @@ class ApiService {
   }
 
   async requestOtp(payload: OtpRequestPayload, eventSlug?: string) {
-    return httpJson<{ return: boolean; message: string; status_code: number }>(`${AUTH_BASE_URL}/auth/otp/request`, {
+    return httpJson<{ success: boolean; message: string; data: any }>(`${AUTH_BASE_URL}/auth/otp/request`, {
       method: "POST",
       headers: { ...this.eventHeader(eventSlug) },
       body: payload,
