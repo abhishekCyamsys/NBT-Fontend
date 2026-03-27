@@ -51,7 +51,7 @@ export default function AdminLogin() {
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                   className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 pl-10 focus:border-[#B30447] focus:outline-none"
-                  placeholder="admin@nbt.local"
+                  placeholder="Enter Username"
                   autoComplete="username"
                   required
                 />
