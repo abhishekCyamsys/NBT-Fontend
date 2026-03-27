@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { CalendarDays, Ticket, LogOut } from 'lucide-react';
+import { CalendarDays, Ticket, LogOut, User } from 'lucide-react';
 
 const tabs = [
   { to: '/visitor/events', label: 'Events', icon: CalendarDays },
   { to: '/visitor/tickets', label: 'My Tickets', icon: Ticket },
-  // { to: '/visitor/profile', label: 'Profile', icon: User }, // No API for profile editing currently
+  { to: '/visitor/profile', label: 'Profile', icon: User },
 ] as const;
 
 export default function VisitorDashboard() {
@@ -38,7 +38,7 @@ export default function VisitorDashboard() {
             <img src="/NBTlogo.png" alt="NBT" className="h-9 w-auto bg-[#B30447] p-1 rounded-md" />
             <div className="min-w-0">
               <span className="font-display text-lg font-bold text-gray-900 hidden sm:inline">
-                Visitor Dashboard
+                Dashboard
               </span>
             </div>
           </div>

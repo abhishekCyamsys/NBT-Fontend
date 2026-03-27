@@ -197,10 +197,19 @@ Request body:
 
 Success response `200`:
 
+- returns the raw SMS provider response body
+
+Example success response:
+
 ```json
 {
   "success": true,
-  "ttlSeconds": 300
+  "message": "Message submitted successfully",
+  "data": {
+    "messageid": "MzkyMzY2MzM=",
+    "totnumber": 1,
+    "totamount": 0.15
+  }
 }
 ```
 
@@ -212,6 +221,17 @@ Error responses:
 - `409 Event is inactive`
 - `429 Too many OTP requests for this mobile number`
 - `429 Too many OTP requests from this IP`
+- provider failures are returned as the raw Fast2SMS error body with the provider HTTP status
+
+Example provider error response:
+
+```json
+{
+  "return": false,
+  "status_code": 412,
+  "message": "Invalid Authentication, Check Authorization Key"
+}
+```
 
 ### `POST /auth/otp/verify`
 
@@ -261,11 +281,27 @@ Case 1 success response `200` when visitor is already registered:
     "registrationSource": "web",
     "otpVerified": true
   },
+  "event": {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "NBT Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Pragati Maidan Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+    "startDate": "2026-04-01T00:00:00.000Z",
+    "endDate": "2026-04-09T00:00:00.000Z",
+    "status": "active"
+  },
   "tickets": [
     {
       "ticketId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
       "ticketNumber": "NBT-2026-000001",
       "ticketType": "parent",
+      "holderName": "Amit Sharma",
       "childId": null,
       "qrToken": "signed-ticket-token",
       "status": "active"
@@ -335,6 +371,7 @@ Auth:
 Required headers:
 
 - `Authorization: Bearer <visitor-jwt>`
+- `event_slug`
 
 Optional headers:
 
@@ -373,11 +410,27 @@ Duplicate response `202`:
   "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
   "status": "already_registered",
   "passStatus": "generated",
+  "event": {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "NBT Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Pragati Maidan Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+    "startDate": "2026-04-01T00:00:00.000Z",
+    "endDate": "2026-04-09T00:00:00.000Z",
+    "status": "active"
+  },
   "tickets": [
     {
       "ticketId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
       "ticketNumber": "NBT-2026-000001",
       "ticketType": "parent",
+      "holderName": "Amit Sharma",
       "childId": null,
       "qrToken": "signed-ticket-token",
       "status": "active"
@@ -457,6 +510,21 @@ Success response `200` when still processing:
 {
   "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
   "status": "processing",
+  "event": {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "NBT Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Pragati Maidan Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+    "startDate": "2026-04-01T00:00:00.000Z",
+    "endDate": "2026-04-09T00:00:00.000Z",
+    "status": "active"
+  },
   "tickets": []
 }
 ```
@@ -467,11 +535,383 @@ Success response `200` when generated:
 {
   "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
   "status": "generated",
+  "event": {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "NBT Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Pragati Maidan Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+    "startDate": "2026-04-01T00:00:00.000Z",
+    "endDate": "2026-04-09T00:00:00.000Z",
+    "status": "active"
+  },
   "tickets": [
     {
       "ticketId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
       "ticketNumber": "NBT-2026-000001",
       "ticketType": "parent",
+      "holderName": "Amit Sharma",
+      "childId": null,
+      "qrToken": "signed-parent-ticket-token",
+      "status": "active"
+    },
+    {
+      "ticketId": "8c1f1c38-0d95-4a56-9dc2-55f7af201222",
+      "ticketNumber": "NBT-2026-000002",
+      "ticketType": "child",
+      "holderName": "Child One",
+      "childId": "2b7d2d7c-14e3-4df7-9de0-18b7994f3001",
+      "qrToken": "signed-child-ticket-token",
+      "status": "active"
+    }
+  ]
+}
+```
+
+Error responses:
+
+- `404 Registration not found`
+
+## App APIs
+
+Auth:
+
+- visitor JWT required for all app endpoints except OTP request and verify
+
+### `POST /apps/otp/request`
+
+Purpose:
+
+- send OTP for app login using mobile number only
+
+Gateway URL:
+
+- `POST http://localhost:3000/apps/otp/request`
+
+Request body:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "purpose": "app_login"
+}
+```
+
+Success response `200`:
+
+- returns the same SMS provider response shape used by the current OTP flow
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Message submitted successfully",
+  "data": {
+    "messageid": "MzkyMzY2MzM=",
+    "totnumber": 1,
+    "totamount": 0.15
+  }
+}
+```
+
+Error responses:
+
+- `429 Too many OTP requests for this mobile number`
+- `429 Too many OTP requests from this IP`
+
+### `POST /apps/otp/verify`
+
+Purpose:
+
+- verify OTP for app login by identity only
+
+Gateway URL:
+
+- `POST http://localhost:3000/apps/otp/verify`
+
+Request body:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "otp": "123456"
+}
+```
+
+Success response `200` for existing visitor:
+
+```json
+{
+  "accessToken": "<visitor-jwt>",
+  "case": "existing_visitor",
+  "visitor": {
+    "id": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+    "name": "Amit Sharma",
+    "mobileNumber": "9876543210",
+    "gender": "M",
+    "age": "20-30",
+    "city": "Delhi",
+    "email": "amit@example.com"
+  }
+}
+```
+
+Success response `200` for new visitor:
+
+```json
+{
+  "accessToken": "<visitor-jwt>",
+  "case": "new_visitor",
+  "visitor": null
+}
+```
+
+Error responses:
+
+- `401 Invalid OTP`
+
+### `GET /apps/profile`
+
+Purpose:
+
+- fetch logged-in visitor profile for app
+
+Gateway URL:
+
+- `GET http://localhost:3000/apps/profile`
+
+Headers:
+
+- `Authorization: Bearer <visitor-jwt>`
+
+Success response `200`:
+
+```json
+{
+  "id": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+  "name": "Amit Sharma",
+  "mobileNumber": "9876543210",
+  "gender": "M",
+  "age": "20-30",
+  "city": "Delhi",
+  "email": "amit@example.com"
+}
+```
+
+Success response `200` when profile does not exist yet:
+
+```json
+{
+  "id": null,
+  "name": null,
+  "mobileNumber": "9876543210",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "email": null
+}
+```
+
+### `POST /apps/profile`
+
+Purpose:
+
+- create visitor profile for logged-in app user
+
+Gateway URL:
+
+- `POST http://localhost:3000/apps/profile`
+
+Headers:
+
+- `Authorization: Bearer <visitor-jwt>`
+
+Request body:
+
+```json
+{
+  "name": "Amit Sharma",
+  "gender": "M",
+  "age": "20-30",
+  "city": "Delhi",
+  "email": "amit@example.com"
+}
+```
+
+Success response `201`:
+
+```json
+{
+  "id": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+  "name": "Amit Sharma",
+  "mobileNumber": "9876543210",
+  "gender": "M",
+  "age": "20-30",
+  "city": "Delhi",
+  "email": "amit@example.com"
+}
+```
+
+Error responses:
+
+- `409 Profile already exists`
+
+### `PATCH /apps/profile`
+
+Purpose:
+
+- update any profile field except mobile number
+
+Gateway URL:
+
+- `PATCH http://localhost:3000/apps/profile`
+
+Headers:
+
+- `Authorization: Bearer <visitor-jwt>`
+
+Request body:
+
+```json
+{
+  "name": "Amit Sharma",
+  "gender": "M",
+  "age": "20-30",
+  "city": "Mumbai",
+  "email": "amit@example.com"
+}
+```
+
+Success response `200`:
+
+```json
+{
+  "id": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+  "name": "Amit Sharma",
+  "mobileNumber": "9876543210",
+  "gender": "M",
+  "age": "20-30",
+  "city": "Mumbai",
+  "email": "amit@example.com"
+}
+```
+
+Error responses:
+
+- `404 Profile not found`
+
+### `GET /apps/events`
+
+Purpose:
+
+- list active events for app registration
+
+Gateway URL:
+
+- `GET http://localhost:3000/apps/events`
+
+Headers:
+
+- `Authorization: Bearer <visitor-jwt>`
+
+Success response `200`:
+
+```json
+[
+  {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Day 1 opening, daily talks, weekend workshops, closing ceremony.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "book-fair-2026-delhi-2026-03-20",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/book-fair-2026-delhi-2026-03-20",
+    "startDate": "2026-03-20T00:00:00.000Z",
+    "endDate": "2026-03-29T00:00:00.000Z",
+    "status": "active"
+  }
+]
+```
+
+### `POST /apps/register`
+
+Purpose:
+
+- register logged-in app user for selected event using the current registration algorithm
+
+Gateway URL:
+
+- `POST http://localhost:3000/apps/register`
+
+Headers:
+
+- `Authorization: Bearer <visitor-jwt>`
+- `event_id`
+- `x-idempotency-key` optional
+
+Request body:
+
+```json
+{
+  "name": "Amit Sharma",
+  "mobileNumber": "9876543210",
+  "gender": "M",
+  "age": "20-30",
+  "city": "Delhi",
+  "email": "amit@example.com",
+  "otpVerified": true
+}
+```
+
+Success response `202`:
+
+```json
+{
+  "visitorId": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+  "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
+  "status": "accepted",
+  "passStatus": "processing"
+}
+```
+
+Duplicate response `202`:
+
+```json
+{
+  "visitorId": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+  "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
+  "status": "already_registered",
+  "passStatus": "generated",
+  "event": {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "NBT Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Pragati Maidan Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+    "startDate": "2026-04-01T00:00:00.000Z",
+    "endDate": "2026-04-09T00:00:00.000Z",
+    "status": "active"
+  },
+  "tickets": [
+    {
+      "ticketId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
+      "ticketNumber": "NBT-2026-000001",
+      "ticketType": "parent",
+      "holderName": "Amit Sharma",
       "childId": null,
       "qrToken": "signed-ticket-token",
       "status": "active"
@@ -482,7 +922,84 @@ Success response `200` when generated:
 
 Error responses:
 
-- `404 Registration not found`
+- `401 Missing bearer token`
+- `401 Token expired`
+- `401 Valid OTP verification token required`
+- `409 Mobile number does not match OTP verification token`
+- `404 Missing event_id header`
+- `409 Invalid event_id`
+- `409 Event is inactive`
+
+### `GET /apps/tickets`
+
+Purpose:
+
+- get all generated or pending tickets across all events for the logged-in visitor
+
+Gateway URL:
+
+- `GET http://localhost:3000/apps/tickets`
+
+Headers:
+
+- `Authorization: Bearer <visitor-jwt>`
+
+Success response `200`:
+
+```json
+{
+  "visitor": {
+    "id": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+    "name": "Amit Sharma",
+    "mobileNumber": "9876543210",
+    "gender": "M",
+    "age": "20-30",
+    "city": "Delhi",
+    "email": "amit@example.com"
+  },
+  "registrations": [
+    {
+      "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
+      "status": "generated",
+      "event": {
+        "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+        "name": "NBT Book Fair 2026",
+        "location": "Delhi",
+        "venue": "Pragati Maidan Hall A",
+        "description": "Nine-day public book fair with author sessions and family activities.",
+        "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+        "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+        "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+        "baseUrl": "https://bookfair.nbtindia.gov.in",
+        "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+        "startDate": "2026-04-01T00:00:00.000Z",
+        "endDate": "2026-04-09T00:00:00.000Z",
+        "status": "active"
+      },
+      "tickets": [
+        {
+          "ticketId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
+          "ticketNumber": "NBT-2026-000001",
+          "ticketType": "parent",
+          "holderName": "Amit Sharma",
+          "childId": null,
+          "qrToken": "signed-parent-ticket-token",
+          "status": "active"
+        },
+        {
+          "ticketId": "8c1f1c38-0d95-4a56-9dc2-55f7af201222",
+          "ticketNumber": "NBT-2026-000002",
+          "ticketType": "child",
+          "holderName": "Child One",
+          "childId": "2b7d2d7c-14e3-4df7-9de0-18b7994f3001",
+          "qrToken": "signed-child-ticket-token",
+          "status": "active"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Volunteer Service
 
@@ -580,11 +1097,27 @@ Duplicate response `202`:
   "registrationId": "4b2fc0be-4eea-4cd2-8db0-d1a71d28f297",
   "status": "already_registered",
   "passStatus": "generated",
+  "event": {
+    "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
+    "name": "NBT Book Fair 2026",
+    "location": "Delhi",
+    "venue": "Pragati Maidan Hall A",
+    "description": "Nine-day public book fair with author sessions and family activities.",
+    "agenda": "Opening ceremony, daily talks, weekend workshops, closing event.",
+    "bannerUrl": "https://cdn.example.com/events/book-fair-2026-banner.jpg",
+    "slug": "nbt-book-fair-2026-delhi-2026-04-01",
+    "baseUrl": "https://bookfair.nbtindia.gov.in",
+    "registerUrl": "https://bookfair.nbtindia.gov.in/register/nbt-book-fair-2026-delhi-2026-04-01",
+    "startDate": "2026-04-01T00:00:00.000Z",
+    "endDate": "2026-04-09T00:00:00.000Z",
+    "status": "active"
+  },
   "tickets": [
     {
       "ticketId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
       "ticketNumber": "NBT-2026-000001",
       "ticketType": "parent",
+      "holderName": "Amit Sharma",
       "childId": null,
       "qrToken": "signed-ticket-token",
       "status": "active"
@@ -605,6 +1138,7 @@ Error responses:
 Purpose:
 
 - validate QR ticket and record entry log
+- parent pass scan also records entry for linked child passes
 
 Gateway URL:
 
@@ -620,20 +1154,75 @@ Request body:
 {
   "qrToken": "signed-ticket-token",
   "eventId": "6fd4c4f2-2e6f-4b80-9f9f-9e31f8f1d111",
-  "deviceId": "adf0c1b4-fc1a-4cb3-9d5f-8fda66de9901",
   "scanDeviceId": "android-scanner-01",
   "gateNumber": 2
 }
 ```
 
-Success response `201`:
+Notes:
+
+- `scanDeviceId` is the recommended scanner/app identifier
+- `deviceId` is optional and should only be sent if it exists in the `devices` table
+
+Success response `201` for a parent ticket:
 
 ```json
 {
   "valid": true,
   "passId": "3a0f4d2f-9d08-4f4c-977a-4d612eb9a111",
+  "passNumber": "NBT-2026-000001",
+  "ticketType": "parent",
   "entryLogId": "7fd2f1d8-0050-449b-8580-71ce26777a11",
-  "entryTime": "2026-03-20T12:35:00.000Z"
+  "entryTime": "2026-03-20T12:35:00.000Z",
+  "totalHeadCount": 2,
+  "totalEntriesRecorded": 2,
+  "visitor": {
+    "visitorId": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+    "name": "Amit Sharma",
+    "mobileNumber": "9876543210",
+    "gender": "M",
+    "age": "20-30",
+    "city": "Delhi",
+    "email": "amit@example.com"
+  },
+  "child": null,
+  "children": [
+    {
+      "childId": "2b7d2d7c-14e3-4df7-9de0-18b7994f3001",
+      "name": "Child One",
+      "age": "10-20"
+    }
+  ]
+}
+```
+
+Success response `201` for a child ticket:
+
+```json
+{
+  "valid": true,
+  "passId": "8c1f1c38-0d95-4a56-9dc2-55f7af201222",
+  "passNumber": "NBT-2026-000002",
+  "ticketType": "child",
+  "entryLogId": "7fd2f1d8-0050-449b-8580-71ce26777a12",
+  "entryTime": "2026-03-20T12:36:00.000Z",
+  "totalHeadCount": 1,
+  "totalEntriesRecorded": 1,
+  "visitor": {
+    "visitorId": "a4f8f7a9-f598-4f7d-a7f8-9d6d74ef1001",
+    "name": "Amit Sharma",
+    "mobileNumber": "9876543210",
+    "gender": "M",
+    "age": "20-30",
+    "city": "Delhi",
+    "email": "amit@example.com"
+  },
+  "child": {
+    "childId": "2b7d2d7c-14e3-4df7-9de0-18b7994f3001",
+    "name": "Child One",
+    "age": "10-20"
+  },
+  "children": []
 }
 ```
 
@@ -642,6 +1231,7 @@ Error responses:
 - `400 Invalid eventId`
 - `401 Invalid or inactive ticket`
 - `401 Ticket event mismatch`
+- `409 Invalid deviceId`
 - `409 Duplicate QR scan blocked`
 
 ## Admin Service
@@ -1099,6 +1689,17 @@ Volunteer flow:
 2. Call `GET /volunteer/events`
 3. Call `POST /volunteer/visitors/register`
 4. Call `POST /volunteer/scan`
+
+App flow:
+
+1. Call `POST /apps/otp/request`
+2. Call `POST /apps/otp/verify`
+3. Call `GET /apps/profile`
+4. Call `POST /apps/profile` if the profile does not exist yet
+5. Call `PATCH /apps/profile` to update any profile field except mobile number
+6. Call `GET /apps/events`
+7. Call `POST /apps/register`
+8. Call `GET /apps/tickets`
 
 Admin flow:
 

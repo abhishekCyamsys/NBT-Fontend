@@ -217,7 +217,7 @@ const storeRegistration = (registration: any) => {
           <p className="mx-auto text-base text-rose-100 sm:text-lg lg:text-xl">
             Discover a world of literature. Register for upcoming events, book digital tickets, and experience the joy of reading.
           </p>
-          {eventData ? (
+          {eventData && (
             <div className="mt-8 text-left bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
               <h3 className="font-display text-xl sm:text-2xl font-bold mb-2">{eventData.eventName}</h3>
               <div className="flex items-center gap-2 text-rose-100 text-xs sm:text-sm mb-1">
@@ -230,18 +230,7 @@ const storeRegistration = (registration: any) => {
                 {eventData.description || "Join us for an amazing event celebrating literature and culture."}
               </p>
             </div>
-          ) : (
-            <div className="mt-8 grid grid-cols-2 gap-4">
-              <div className="rounded-xl bg-white/10 p-4 backdrop-blur-md border border-white/10 hover:-translate-y-1 transition-transform">
-                <p className="text-2xl lg:text-3xl font-bold">1M+</p>
-                <p className="text-xs lg:text-sm font-medium text-rose-200">Books Available</p>
-              </div>
-              <div className="rounded-xl bg-white/10 p-4 backdrop-blur-md border border-white/10 hover:-translate-y-1 transition-transform">
-                <p className="text-2xl lg:text-3xl font-bold">200+</p>
-                <p className="text-xs lg:text-sm font-medium text-rose-200">Annual Events</p>
-              </div>
-            </div>
-          )}
+          ) }
         </div>
       </div>
 
