@@ -46,7 +46,7 @@ export default function VolunteerLogin() {
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                   className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#B30447] transition"
-                  placeholder="volunteer@nbt.local"
+                  placeholder="Enter Username"
                   autoComplete="username"
                   required
                 />
