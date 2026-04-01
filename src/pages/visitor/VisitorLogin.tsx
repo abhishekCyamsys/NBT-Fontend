@@ -158,6 +158,20 @@ const storeRegistration = (registration: any) => {
 };
 
   const handleOtpChange = (index: number, value: string) => {
+    const digits = value.replace(/\D/g, "");
+    
+    if (digits.length >= 6) {
+      const otpDigits = digits.length > 6 ? digits.slice(-6) : digits;
+      const next = [...otp];
+      otpDigits.split("").forEach((c, i) => {
+        if (i < 6) next[i] = c;
+      });
+      setOtp(next);
+      setError("");
+      inputRefs.current[5]?.focus();
+      return;
+    }
+
     if (!/^\d*$/.test(value)) return;
     const next = [...otp];
     next[index] = value.slice(-1);
@@ -364,7 +378,8 @@ const storeRegistration = (registration: any) => {
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       onPaste={handleOtpPaste}
                       inputMode="numeric"
-                      maxLength={1}
+                      maxLength={6}
+                      autoComplete="one-time-code"
                       className="h-12 w-10 sm:h-14 sm:w-12 rounded-xl border-2 border-gray-200 bg-gray-50 text-center text-xl font-bold text-gray-900 transition-all focus:border-[#B30447] focus:bg-white focus:outline-none focus:ring-4 focus:ring-rose-50"
                       disabled={verifying || resending}
                     />
