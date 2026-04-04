@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Filter, X } from 'lucide-react';
 import { apiService, type AdminVisitor } from '../../services/api';
 
 export default function VisitorsPage() {
@@ -7,7 +7,24 @@ export default function VisitorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [timeFilter, setTimeFilter] = useState('');
+  const [eventIdFilter, setEventIdFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const clearFilters = () => {
+    setQuery('');
+    setDateFilter('');
+    setTimeFilter('');
+    setEventIdFilter('all');
+    setSourceFilter('all');
+  };
+
+  const hasActiveFilters = Boolean(
+    query || dateFilter || timeFilter || eventIdFilter !== 'all' || sourceFilter !== 'all'
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -34,19 +51,61 @@ export default function VisitorsPage() {
     };
   }, []);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return visitors;
-    return visitors.filter((v) => {
-      return (
-        v.name.toLowerCase().includes(q) ||
-        v.mobileNumber.toLowerCase().includes(q) ||
-        v.visitorId.toLowerCase().includes(q) ||
-        v.registrationId.toLowerCase().includes(q) ||
-        v.eventName.toLowerCase().includes(q)
-      );
+  const uniqueEvents = useMemo(() => {
+    const map = new Map<string, string>();
+    visitors.forEach(v => {
+      if (!map.has(v.eventId)) {
+        map.set(v.eventId, v.eventName);
+      }
     });
-  }, [query, visitors]);
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [visitors]);
+
+  const filtered = useMemo(() => {
+    let result = visitors;
+
+    if (eventIdFilter !== 'all') {
+      result = result.filter(v => v.eventId === eventIdFilter);
+    }
+
+    if (sourceFilter !== 'all') {
+      result = result.filter(v => (v.registrationSource || '').toLowerCase() === sourceFilter.toLowerCase());
+    }
+
+    if (dateFilter) {
+      result = result.filter(v => {
+        const d = new Date(v.createdAt);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}` === dateFilter;
+      });
+    }
+
+    if (timeFilter) {
+      result = result.filter(v => {
+        const d = new Date(v.createdAt);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`.startsWith(timeFilter);
+      });
+    }
+
+    const q = query.trim().toLowerCase();
+    if (q) {
+      result = result.filter((v) => {
+        return (
+          v.name.toLowerCase().includes(q) ||
+          v.mobileNumber.toLowerCase().includes(q) ||
+          v.visitorId.toLowerCase().includes(q) ||
+          v.registrationId.toLowerCase().includes(q) ||
+          v.eventName.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    return result;
+  }, [query, visitors, eventIdFilter, sourceFilter, dateFilter, timeFilter]);
 
   return (
     <div className="space-y-4">
@@ -56,18 +115,84 @@ export default function VisitorsPage() {
       </div>
 
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <div className="mb-4">
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-4 w-4 text-gray-400" />
+        <div className="mb-4 space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 pl-9 text-sm focus:border-[#B30447] focus:outline-none"
+                placeholder="Search by name, phone, or visitor ID"
+              />
             </div>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 pl-9 text-sm focus:border-[#B30447] focus:outline-none"
-              placeholder="Search by name, phone, or visitor ID"
-            />
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1.5 rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-[#B30447] hover:text-[#B30447]"
+              >
+                <X className="h-4 w-4" />
+                Clear
+              </button>
+            )}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-colors ${showFilters ? 'border-[#B30447] text-[#B30447] bg-pink-50' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </button>
           </div>
+
+          {showFilters && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-xl bg-gray-50 p-4 border border-gray-100">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">Event</label>
+                <select
+                  value={eventIdFilter}
+                  onChange={(e) => setEventIdFilter(e.target.value)}
+                  className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#B30447] focus:ring-[#B30447] border bg-white"
+                >
+                  <option value="all">All Events</option>
+                  {uniqueEvents.map(e => (
+                    <option key={e.id} value={e.id}>{e.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">Source</label>
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value)}
+                  className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#B30447] focus:ring-[#B30447] border bg-white"
+                >
+                  <option value="all">All Sources</option>
+                  <option value="web">Web</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">Date</label>
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#B30447] focus:ring-[#B30447] border bg-white"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">Time</label>
+                <input
+                  type="time"
+                  value={timeFilter}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                  className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#B30447] focus:ring-[#B30447] border bg-white"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (
