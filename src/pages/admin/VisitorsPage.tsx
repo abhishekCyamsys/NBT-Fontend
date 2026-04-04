@@ -116,7 +116,7 @@ export default function VisitorsPage() {
                       <td className="px-3 py-2">
                         <p className="text-sm font-semibold text-gray-900">{v.name}</p>
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-gray-700">{v.mobileNumber}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-gray-700">+{v.mobileNumber}</td>
                       <td className="px-3 py-2 text-xs">
                         <span className="inline-flex rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
                           {v.registrationSource}
@@ -160,7 +160,7 @@ export default function VisitorsPage() {
                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                       <div className="rounded-lg bg-gray-50 p-2">
                         <p className="text-gray-500">Mobile</p>
-                        <p className="font-semibold text-gray-900">{v.mobileNumber}</p>
+                        <p className="font-semibold text-gray-900">+{v.mobileNumber}</p>
                       </div>
                       <div className="rounded-lg bg-gray-50 p-2">
                         <p className="text-gray-500">Age</p>
