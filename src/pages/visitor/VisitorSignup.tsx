@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../../services/api';
 
-type AgeRange = '18-24' | '24-30' | '30-35' | '35-50' | '50+';
 
 export default function VisitorSignup() {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ export default function VisitorSignup() {
     
   const [form, setForm] = useState({ 
     name: '', 
-    age: '18-24' as AgeRange, 
+    age: '18-24', 
     gender: 'M',
   });
   const [loading, setLoading] = useState(false);
@@ -78,14 +77,14 @@ export default function VisitorSignup() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Age Range</label>
                 <select
                   value={form.age}
-                  onChange={(e) => setForm((p) => ({ ...p, age: e.target.value as AgeRange }))}
+                  onChange={(e) => setForm((p) => ({ ...p, age: e.target.value }))}
                   className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none bg-white"
                 >
                   <option value="18-24">18-24</option>
                   <option value="24-30">24-30</option>
                   <option value="30-35">30-35</option>
                   <option value="35-50">35-50</option>
-                  <option value="50+">50+</option>
+                  <option value="50-100">50+</option>
                 </select>
               </div>
               <div>
