@@ -16,7 +16,7 @@ export const visitorDailyCreatives: VisitorCreativeEntry[] = [
 		date: "2026-04-07",
 		title: "Welcome to NBT",
 		images: [
-			"https://nbt-creatives-images-535002861308-ap-south-1-an.s3.ap-south-1.amazonaws.com/7.jpeg",
+			"https://nbt-creatives-images-535002861308-ap-south-1-an.s3.ap-south-1.amazonaws.com/7.jpg",
 			"https://nbt-creatives-images-535002861308-ap-south-1-an.s3.ap-south-1.amazonaws.com/IMG-20260404-WA0011.jpg",
 			"https://nbt-creatives-images-535002861308-ap-south-1-an.s3.ap-south-1.amazonaws.com/IMG-20260404-WA0016.jpg",
 		],
