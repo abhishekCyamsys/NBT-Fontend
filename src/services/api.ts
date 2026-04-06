@@ -348,7 +348,7 @@ class ApiService {
     );
   }
 
-  async requestOtp(payload: OtpRequestPayload, eventSlug?: string) {
+  async requestOtp(payload: OtpRequestPayload, eventSlug = 'doon-book-festivals-dehradun-2026-04-04') {
     return httpJson<{ success: boolean; message: string; data: any }>(`${AUTH_BASE_URL}/auth/otp/request`, {
       method: "POST",
       headers: { ...this.eventHeader(eventSlug) },
@@ -356,7 +356,7 @@ class ApiService {
     });
   }
 
-  async verifyOtp(payload: OtpVerifyPayload, eventSlug?: string) {
+  async verifyOtp(payload: OtpVerifyPayload, eventSlug = 'doon-book-festivals-dehradun-2026-04-04') {
     const res = await httpJson<OtpVerifyResponse>(
       `${AUTH_BASE_URL}/auth/otp/verify`,
       {
@@ -371,7 +371,7 @@ class ApiService {
     return res;
   }
 
-  async registerVisitor(payload: VisitorRegisterPayload, eventSlug?: string) {
+  async registerVisitor(payload: VisitorRegisterPayload, eventSlug = 'doon-book-festivals-dehradun-2026-04-04') {
     const jwt = this.getVisitorJwt();
     if (!jwt)
       throw {
