@@ -1,0 +1,126 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-south-1
+  S3_BUCKET: web.nbt-535002861308-ap-south-1-an
+  CLOUDFRONT_DISTRIBUTION_ID: EDGJ78QP0GQUM
+  VITE_AUTH_BASE_URL: ${{ vars.VITE_AUTH_BASE_URL }}
+  VITE_VISITOR_BASE_URL: ${{ vars.VITE_VISITOR_BASE_URL }}
+  VITE_VOLUNTEER_BASE_URL: ${{ vars.VITE_VOLUNTEER_BASE_URL }}
+  VITE_ADMIN_BASE_URL: ${{ vars.VITE_ADMIN_BASE_URL }}
+  VITE_EVENT_ID: ${{ vars.VITE_EVENT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Vite application
+        run: npm run build
+
+      - name: Debug - Verify environment and secrets
+        run: |
+          echo "Environment: prod"
+          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+          echo "S3_BUCKET: ${{ env.S3_BUCKET }}"
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
+            echo "ERROR: AWS_ACCESS_KEY_ID secret is empty or not found"
+            exit 1
+          else
+            echo "AWS_ACCESS_KEY_ID is set"
+          fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "ERROR: AWS_SECRET_ACCESS_KEY secret is empty or not found"
+            exit 1
+          else
+            echo "AWS_SECRET_ACCESS_KEY is set"
+          fi
+          if [ -z "${{ env.VITE_AUTH_BASE_URL }}" ]; then
+            echo "ERROR: VITE_AUTH_BASE_URL repo variable is empty or not found"
+            exit 1
+          fi
+          if [ -z "${{ env.VITE_VISITOR_BASE_URL }}" ]; then
+            echo "ERROR: VITE_VISITOR_BASE_URL repo variable is empty or not found"
+            exit 1
+          fi
+          if [ -z "${{ env.VITE_VOLUNTEER_BASE_URL }}" ]; then
+            echo "ERROR: VITE_VOLUNTEER_BASE_URL repo variable is empty or not found"
+            exit 1
+          fi
+          if [ -z "${{ env.VITE_ADMIN_BASE_URL }}" ]; then
+            echo "ERROR: VITE_ADMIN_BASE_URL repo variable is empty or not found"
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3 with proper Content-Types
+        run: |
+          aws s3 sync dist/ s3://${{ env.S3_BUCKET }}/ \
+            --delete \
+            --exclude "*.html" \
+            --exclude "*.css" \
+            --exclude "*.js" \
+            --exclude "*.mjs" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 sync dist/ s3://${{ env.S3_BUCKET }}/ \
+            --delete \
+            --exclude "*" \
+            --include "*.html" \
+            --content-type "text/html" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+          aws s3 sync dist/ s3://${{ env.S3_BUCKET }}/ \
+            --delete \
+            --exclude "*" \
+            --include "*.css" \
+            --content-type "text/css" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 sync dist/ s3://${{ env.S3_BUCKET }}/ \
+            --delete \
+            --exclude "*" \
+            --include "*.js" \
+            --include "*.mjs" \
+            --content-type "application/javascript" \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Invalidate CloudFront cache
+        if: env.CLOUDFRONT_DISTRIBUTION_ID != 'your-cloudfront-distribution-id'
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Deployment summary
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Website bucket: s3://${{ env.S3_BUCKET }}"
+          if [ "${{ env.CLOUDFRONT_DISTRIBUTION_ID }}" != "your-cloudfront-distribution-id" ]; then
+            echo "CloudFront cache invalidated"
+          fi
