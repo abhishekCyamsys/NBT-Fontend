@@ -263,16 +263,16 @@ export default function VisitorLogin() {
         <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,transparent_47%,rgba(255,255,255,0.06)_47%,rgba(255,255,255,0.06)_50%,transparent_50%,transparent_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_0%,transparent_18%,rgba(255,255,255,0.04)_18%,rgba(255,255,255,0.04)_21%,transparent_21%,transparent_100%)]" />
 
-        <div className="relative z-10 mx-auto grid h-full w-full max-w-3xl grid-rows-[auto_1fr] gap-8 lg:gap-10">
-          <div className="flex items-start">
-            <div className="inline-flex rounded-[26px] bg-white/12 p-4 shadow-[0_22px_55px_rgba(34,8,21,0.24)] ring-1 ring-white/10 backdrop-blur-md">
-              <img src="/NBTlogo.png" alt="NBT Logo" className="h-16 w-auto object-contain sm:h-20 lg:h-24" />
+        <div className="relative z-10 mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-between gap-6 lg:gap-10">
+          <div className="flex items-start justify-center lg:justify-start">
+            <div className="inline-flex rounded-[20px] lg:rounded-[26px] bg-white/12 p-3 lg:p-4 shadow-[0_22px_55px_rgba(34,8,21,0.24)] ring-1 ring-white/10 backdrop-blur-md transition-transform hover:scale-105">
+              <img src="/NBTlogo.png" alt="NBT Logo" className="h-14 w-auto object-contain sm:h-16 lg:h-24" />
             </div>
           </div>
 
           <div className="flex items-end justify-center lg:justify-end">
-            <div className="w-full max-w-[500px] rounded-[34px] border border-white/10 bg-white/5 p-4 shadow-[0_30px_90px_rgba(18,6,13,0.32)] backdrop-blur-sm">
-              <div className="rounded-[28px] bg-[#fdf4ef] p-4 text-[#311523] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:p-5">
+            <div className="w-full max-w-[500px] rounded-[24px] lg:rounded-[34px] border border-white/10 bg-white/5 p-3 lg:p-4 shadow-[0_30px_90px_rgba(18,6,13,0.32)] backdrop-blur-sm transition-all hover:bg-white/10">
+              <div className="rounded-[20px] lg:rounded-[28px] bg-[#fdf4ef] p-4 text-[#311523] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:p-5">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b30447]">
@@ -290,15 +290,15 @@ export default function VisitorLogin() {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_14px_35px_rgba(54,20,34,0.14)]">
+                <div className="overflow-hidden rounded-[16px] lg:rounded-[24px] bg-gray-50 flex items-center justify-center shadow-[0_14px_35px_rgba(54,20,34,0.14)]">
                   {activeCreativeImage ? (
                     <img
                       src={activeCreativeImage}
                       alt={`${activeCreative?.title ?? "NBT creative"} for ${activeCreative?.date ?? todayKey}`}
-                      className="h-[360px] w-full object-cover object-top sm:h-[440px] lg:h-[560px]"
+                      className="aspect-[4/3] w-full object-contain sm:aspect-square lg:aspect-auto lg:h-[480px] p-2 lg:p-0"
                     />
                   ) : (
-                    <div className="flex h-[360px] items-center justify-center bg-[#fce7ef] px-6 text-center text-sm font-medium text-[#9f174d] sm:h-[440px] lg:h-[560px]">
+                    <div className="flex aspect-[4/3] w-full items-center justify-center bg-[#fce7ef] px-6 text-center text-sm font-medium text-[#9f174d] sm:aspect-square lg:aspect-auto lg:h-[480px]">
                       Creative will appear here when scheduled.
                     </div>
                   )}
@@ -344,14 +344,13 @@ export default function VisitorLogin() {
         </div>
       </div>
 
-      <div className="flex w-full flex-col justify-center px-4 py-10 sm:px-6 lg:w-1/2 lg:px-16 xl:px-24">
-        <div className="mx-auto w-full max-w-md">
-          <div className="mb-10 space-y-5">
-            <div className="space-y-4">
-              <h1 className="font-display text-4xl font-extrabold leading-[0.95] tracking-tight text-gray-900 sm:text-5xl">
+      <div className="flex w-full flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2 lg:px-16 xl:px-24">
+        <div className="mx-auto w-full max-w-md lg:max-w-lg">
+          <div className="mb-8 lg:mb-10 space-y-4 lg:space-y-5">
+            <div className="space-y-3 lg:space-y-4">
+              <h1 className="font-display text-3xl font-extrabold leading-[1] tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
                 Welcome to
-                <br />
-                NBT
+                <br className="max-sm:hidden" /> NBT
               </h1>
               <p className="max-w-lg text-base leading-8 text-gray-600 sm:text-lg">
                 Discover a world of literature. Register for upcoming events, book digital tickets, and experience the joy of reading.
