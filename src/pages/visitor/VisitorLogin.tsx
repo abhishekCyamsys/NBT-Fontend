@@ -54,6 +54,7 @@ export default function VisitorLogin() {
   const [error, setError] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
   const [activeCreativeIndex, setActiveCreativeIndex] = useState(0);
+  const [isCreativePreviewOpen, setIsCreativePreviewOpen] = useState(false);
   const { eventId } = useParams();
 
   const [eventData, setEventData] = useState<{
@@ -127,6 +128,19 @@ export default function VisitorLogin() {
 
     setActiveCreativeIndex((current) => (current + 1) % creativeImages.length);
   };
+
+  useEffect(() => {
+    if (!isCreativePreviewOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsCreativePreviewOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isCreativePreviewOpen]);
 
   const requestOtp = async () => {
     setError("");
@@ -314,17 +328,27 @@ export default function VisitorLogin() {
                 <div className="relative overflow-hidden rounded-[16px] bg-gray-50 shadow-[0_14px_35px_rgba(54,20,34,0.14)] lg:rounded-[24px]">
                   {activeCreativeImage ? (
                     <>
-                      <img
-                        src={activeCreativeImage}
-                        alt={`${activeCreative?.title ?? "NBT creative"} for ${activeCreative?.date ?? todayKey}`}
-                        className="aspect-[4/3] w-full object-contain p-2 sm:aspect-square lg:h-[480px] lg:aspect-auto lg:p-0"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsCreativePreviewOpen(true)}
+                        aria-label="Open creative image preview"
+                        className="block w-full"
+                      >
+                        <img
+                          src={activeCreativeImage}
+                          alt={`${activeCreative?.title ?? "NBT creative"} for ${activeCreative?.date ?? todayKey}`}
+                          className="aspect-[4/3] w-full object-contain p-2 sm:aspect-square lg:h-[480px] lg:aspect-auto lg:p-0"
+                        />
+                      </button>
 
                       {creativeImages.length > 1 && (
                         <>
                           <button
                             type="button"
-                            onClick={goToPreviousCreativeImage}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              goToPreviousCreativeImage();
+                            }}
                             aria-label="Show previous creative image"
                             className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#311523]/70 text-white backdrop-blur-sm transition hover:bg-[#311523]/85"
                           >
@@ -333,7 +357,10 @@ export default function VisitorLogin() {
 
                           <button
                             type="button"
-                            onClick={goToNextCreativeImage}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              goToNextCreativeImage();
+                            }}
                             aria-label="Show next creative image"
                             className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#311523]/70 text-white backdrop-blur-sm transition hover:bg-[#311523]/85"
                           >
@@ -368,6 +395,35 @@ export default function VisitorLogin() {
           </div>
         </div>
       </div>
+
+      {isCreativePreviewOpen && activeCreativeImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a0a13]/85 p-4 backdrop-blur-sm"
+          onClick={() => setIsCreativePreviewOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="relative w-full max-w-5xl overflow-hidden rounded-[28px] bg-white p-3 shadow-[0_30px_100px_rgba(18,6,13,0.5)] sm:p-4"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Creative image preview"
+          >
+            <button
+              type="button"
+              onClick={() => setIsCreativePreviewOpen(false)}
+              className="absolute right-3 top-3 z-10 rounded-full bg-[#311523]/80 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-[#311523]"
+            >
+              Close
+            </button>
+            <img
+              src={activeCreativeImage}
+              alt={`${activeCreative?.title ?? "NBT creative"} full preview`}
+              className="max-h-[85vh] w-full rounded-[20px] object-contain"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex w-full flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2 lg:px-16 xl:px-24">
         <div className="mx-auto w-full max-w-md lg:max-w-lg">
