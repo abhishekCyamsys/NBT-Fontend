@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ShieldCheck, RefreshCw, Calendar, MapPin, Search } from "lucide-react";
+import {
+  ShieldCheck,
+  RefreshCw,
+  Calendar,
+  MapPin,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { apiService } from "../../services/api";
 import { visitorDailyCreatives } from "../../data/visitorDailyCreatives";
 import { COUNTRY_CODES } from "../../utils/countryCodes";
@@ -62,6 +70,7 @@ export default function VisitorLogin() {
 
   const todayKey = useMemo(() => getDateKey(new Date()), []);
   const activeCreative = useMemo(() => getActiveCreative(todayKey), [todayKey]);
+  const creativeImages = activeCreative?.images ?? [];
   const activeCreativeImage = activeCreative?.images[activeCreativeIndex] ?? null;
 
   useEffect(() => {
@@ -93,7 +102,31 @@ export default function VisitorLogin() {
     setActiveCreativeIndex(0);
   }, [activeCreative?.date]);
 
+  useEffect(() => {
+    if (creativeImages.length <= 1) return;
+
+    const interval = window.setInterval(() => {
+      setActiveCreativeIndex((current) => (current + 1) % creativeImages.length);
+    }, 4000);
+
+    return () => window.clearInterval(interval);
+  }, [creativeImages.length]);
+
   const otpValue = useMemo(() => otp.join(""), [otp]);
+
+  const goToPreviousCreativeImage = () => {
+    if (creativeImages.length <= 1) return;
+
+    setActiveCreativeIndex((current) =>
+      current === 0 ? creativeImages.length - 1 : current - 1,
+    );
+  };
+
+  const goToNextCreativeImage = () => {
+    if (creativeImages.length <= 1) return;
+
+    setActiveCreativeIndex((current) => (current + 1) % creativeImages.length);
+  };
 
   const requestOtp = async () => {
     setError("");
@@ -273,30 +306,43 @@ export default function VisitorLogin() {
           <div className="flex items-end justify-center lg:justify-end">
             <div className="w-full max-w-[500px] rounded-[24px] lg:rounded-[34px] border border-white/10 bg-white/5 p-3 lg:p-4 shadow-[0_30px_90px_rgba(18,6,13,0.32)] backdrop-blur-sm transition-all hover:bg-white/10">
               <div className="rounded-[20px] lg:rounded-[28px] bg-[#fdf4ef] p-4 text-[#311523] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:p-5">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b30447]">
-                      {activeCreative?.date === todayKey ? "Today's Creative" : "Featured Creative"}
-                    </p>
-                    <h2 className="mt-2 font-display text-xl font-bold sm:text-2xl">
-                      {activeCreative?.title ?? "NBT Creative"}
+                 <h2 className="font-display text-xl font-bold sm:text-2xl text-center mb-2">
+                      {activeCreative?.title ?? "Welcome to NBT"}
                     </h2>
-                  </div>
-                  <div className="rounded-full bg-[#f8dfe8] px-4 py-2 text-sm font-semibold text-[#9f174d]">
-                    {new Date(activeCreative?.date ?? todayKey).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </div>
-                </div>
+			  
 
-                <div className="overflow-hidden rounded-[16px] lg:rounded-[24px] bg-gray-50 flex items-center justify-center shadow-[0_14px_35px_rgba(54,20,34,0.14)]">
+                <div className="relative overflow-hidden rounded-[16px] bg-gray-50 shadow-[0_14px_35px_rgba(54,20,34,0.14)] lg:rounded-[24px]">
                   {activeCreativeImage ? (
-                    <img
-                      src={activeCreativeImage}
-                      alt={`${activeCreative?.title ?? "NBT creative"} for ${activeCreative?.date ?? todayKey}`}
-                      className="aspect-[4/3] w-full object-contain sm:aspect-square lg:aspect-auto lg:h-[480px] p-2 lg:p-0"
-                    />
+                    <>
+                      <img
+                        src={activeCreativeImage}
+                        alt={`${activeCreative?.title ?? "NBT creative"} for ${activeCreative?.date ?? todayKey}`}
+                        className="aspect-[4/3] w-full object-contain p-2 sm:aspect-square lg:h-[480px] lg:aspect-auto lg:p-0"
+                      />
+
+                      {creativeImages.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={goToPreviousCreativeImage}
+                            aria-label="Show previous creative image"
+                            className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#311523]/70 text-white backdrop-blur-sm transition hover:bg-[#311523]/85"
+                          >
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={goToNextCreativeImage}
+                            aria-label="Show next creative image"
+                            className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#311523]/70 text-white backdrop-blur-sm transition hover:bg-[#311523]/85"
+                          >
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+
+                        </>
+                      )}
+                    </>
                   ) : (
                     <div className="flex aspect-[4/3] w-full items-center justify-center bg-[#fce7ef] px-6 text-center text-sm font-medium text-[#9f174d] sm:aspect-square lg:aspect-auto lg:h-[480px]">
                       Creative will appear here when scheduled.
@@ -316,28 +362,7 @@ export default function VisitorLogin() {
                   </div>
                 )}
 
-                {activeCreative && activeCreative.images.length > 1 && (
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    {activeCreative.images.map((image, index) => (
-                      <button
-                        key={`${activeCreative.date}-${index}`}
-                        type="button"
-                        onClick={() => setActiveCreativeIndex(index)}
-                        className={`overflow-hidden rounded-2xl border transition ${
-                          activeCreativeIndex === index
-                            ? "border-[#b30447] ring-2 ring-[#f7bfd1]"
-                            : "border-[#f3d7e1] opacity-80 hover:opacity-100"
-                        }`}
-                      >
-                        <img
-                          src={image}
-                          alt={`Creative option ${index + 1}`}
-                          className="h-24 w-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
+               
               </div>
             </div>
           </div>
@@ -347,19 +372,11 @@ export default function VisitorLogin() {
       <div className="flex w-full flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2 lg:px-16 xl:px-24">
         <div className="mx-auto w-full max-w-md lg:max-w-lg">
           <div className="mb-8 lg:mb-10 space-y-4 lg:space-y-5">
-            <div className="space-y-3 lg:space-y-4">
-              <h1 className="font-display text-3xl font-extrabold leading-[1] tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
-                Welcome to
-                <br className="max-sm:hidden" /> NBT
-              </h1>
-              <p className="max-w-lg text-base leading-8 text-gray-600 sm:text-lg">
-                Discover a world of literature. Register for upcoming events, book digital tickets, and experience the joy of reading.
-              </p>
-            </div>
-            <h2 className="font-display text-3xl font-bold tracking-tight text-gray-900">
+          
+            <h2 className="font-display text-2xl font-bold tracking-tight text-gray-900">
               Get your free pass
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="text-sm text-gray-600">
               {step === "mobile"
                 ? "Enter your mobile number to securely log in or register."
                 : "We sent a secure code to verify your identity."}
