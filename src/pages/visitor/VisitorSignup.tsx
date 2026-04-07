@@ -7,10 +7,10 @@ export default function VisitorSignup() {
   const navigate = useNavigate();
   const mobileNumber =
     localStorage.getItem('visitor_mobile') || localStorage.getItem('guest_mobile') || '';
-    
-  const [form, setForm] = useState({ 
-    name: '', 
-    age: '18-24', 
+
+  const [form, setForm] = useState({
+    name: '',
+    age: '',
     gender: 'M',
   });
   const [loading, setLoading] = useState(false);
@@ -53,8 +53,8 @@ export default function VisitorSignup() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="rounded-2xl bg-[#B30447] p-4 inline-flex shadow-lg transition-transform hover:-translate-y-1">
-              <img src="/NBTlogo.png" alt="NBT Logo" className="h-10 w-auto" />
-            </div>
+            <img src="/NBTlogo.png" alt="NBT Logo" className="h-10 w-auto" />
+          </div>
           <h2 className="mt-6 text-3xl font-display font-bold text-gray-900">Register</h2>
           <p className="mt-2 text-sm text-gray-600">Provide a few details to finalize your visitor registration.</p>
         </div>
@@ -80,6 +80,7 @@ export default function VisitorSignup() {
                   onChange={(e) => setForm((p) => ({ ...p, age: e.target.value }))}
                   className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none bg-white"
                 >
+                  <option value="" disabled>Select Age Range</option>
                   <option value="18-24">18-24</option>
                   <option value="24-30">24-30</option>
                   <option value="30-35">30-35</option>
