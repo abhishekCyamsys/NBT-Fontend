@@ -1,20 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Users, ClipboardList, Ticket, ScanLine, Baby, UserPlus } from 'lucide-react';
-import { apiService, type AdminDashboardStats } from '../../services/api';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { apiService, type AdminDashboardStats, type AdminVisitor } from '../../services/api';
+
+const PIE_COLORS = ['#B30447', '#D23769', '#F06A8C', '#FFA1B6', '#FFD1DA', '#990033', '#660022'];
 
 export default function DashboardHome() {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [visitors, setVisitors] = useState<AdminVisitor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    apiService
-      .getAdminDashboard()
-      .then((data) => {
+
+    Promise.all([
+      apiService.getAdminDashboard(),
+      apiService.getAdminVisitors()
+    ])
+      .then(([dashboardData, visitorsData]) => {
         if (!cancelled) {
-          setStats(data);
+          setStats(dashboardData);
+          setVisitors(visitorsData);
           setError('');
         }
       })
@@ -27,10 +35,23 @@ export default function DashboardHome() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const demographicsData = useMemo(() => {
+    if (!visitors.length) return [];
+    const counts: Record<string, number> = {};
+    visitors.forEach(v => {
+      const age = v.age || 'Unknown';
+      counts[age] = (counts[age] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [visitors]);
 
   if (loading) {
     return (
@@ -80,25 +101,82 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
           <h2 className="font-display text-lg font-bold text-gray-900">Visitors per day</h2>
           <p className="mt-1 text-xs text-gray-600">Daily registrations volume</p>
 
           {stats?.visitorsPerDay?.length ? (
-            <div className="mt-4 space-y-2">
-              {stats.visitorsPerDay.map((d) => (
-                <div key={d.date} className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
-                  <span className="font-mono text-xs text-gray-600">{d.date}</span>
-                  <span className="text-sm font-bold text-gray-900">{d.totalVisitors}</span>
-                </div>
-              ))}
+            <div className="mt-4 h-64 text-xs font-sans">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats.visitorsPerDay} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#B30447" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#B30447" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    itemStyle={{ color: '#B30447', fontWeight: 'bold' }}
+                  />
+                  <Area type="monotone" dataKey="totalVisitors" name="Visitors" stroke="#B30447" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitors)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           ) : (
             <p className="mt-4 text-sm text-gray-500">No daily data yet.</p>
           )}
         </div>
 
+        <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="font-display text-lg font-bold text-gray-900">Demographics (Age)</h2>
+          <p className="mt-1 text-xs text-gray-600">Visitor age distribution</p>
+
+          {demographicsData.length > 0 ? (
+            <div className="mt-4 flex flex-col items-center">
+              <div className="h-48 w-full font-sans text-xs">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={demographicsData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {demographicsData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ fontWeight: 'bold', color: '#111827' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-2 flex flex-wrap justify-center gap-3">
+                {demographicsData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-1.5 text-xs">
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}></span>
+                    <span className="text-gray-600">{entry.name} ({entry.value})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">No demographic data yet.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="font-display text-lg font-bold text-gray-900">Visitors per event</h2>
           <p className="mt-1 text-xs text-gray-600">Event-wise visitor count</p>
