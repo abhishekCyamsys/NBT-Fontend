@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Users, ClipboardList, Ticket, ScanLine, Baby, UserPlus } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { apiService, type AdminDashboardStats, type AdminVisitor } from '../../services/api';
+import { BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { apiService, type AdminDashboardStats } from '../../services/api';
 
 const PIE_COLORS = ['#B30447', '#D23769', '#F06A8C', '#FFA1B6', '#FFD1DA', '#990033', '#660022'];
 
 export default function DashboardHome() {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [visitors, setVisitors] = useState<AdminVisitor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -15,14 +14,10 @@ export default function DashboardHome() {
     let cancelled = false;
     setLoading(true);
 
-    Promise.all([
-      apiService.getAdminDashboard(),
-      apiService.getAdminVisitors()
-    ])
-      .then(([dashboardData, visitorsData]) => {
+    apiService.getAdminDashboard()
+      .then((dashboardData) => {
         if (!cancelled) {
           setStats(dashboardData);
-          setVisitors(visitorsData);
           setError('');
         }
       })
@@ -42,16 +37,11 @@ export default function DashboardHome() {
   }, []);
 
   const demographicsData = useMemo(() => {
-    if (!visitors.length) return [];
-    const counts: Record<string, number> = {};
-    visitors.forEach(v => {
-      const age = v.age || 'Unknown';
-      counts[age] = (counts[age] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
+    if (!stats?.visitorAgeDistribution) return [];
+    return stats.visitorAgeDistribution
+      .map(d => ({ name: d.age || 'Unknown', value: d.count }))
       .sort((a, b) => b.value - a.value);
-  }, [visitors]);
+  }, [stats?.visitorAgeDistribution]);
 
   if (loading) {
     return (
@@ -109,22 +99,20 @@ export default function DashboardHome() {
           {stats?.visitorsPerDay?.length ? (
             <div className="mt-4 h-64 text-xs font-sans">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.visitorsPerDay} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#B30447" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#B30447" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
+                <BarChart data={stats.visitorsPerDay} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ color: '#B30447', fontWeight: 'bold' }}
+                    itemStyle={{ fontWeight: 'bold' }}
+                    cursor={{ fill: '#F3F4F6' }}
                   />
-                  <Area type="monotone" dataKey="totalVisitors" name="Visitors" stroke="#B30447" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitors)" />
-                </AreaChart>
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                  <Bar dataKey="morningVisitors" name="Morning" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="eveningVisitors" name="Evening" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalVisitors" name="All (Total)" fill="#B30447" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
