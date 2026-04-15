@@ -173,6 +173,12 @@ export interface AdminDashboardStats {
   visitorsPerDay: Array<{
     date: string;
     totalVisitors: number;
+    morningVisitors?: number;
+    eveningVisitors?: number;
+  }>;
+  visitorAgeDistribution?: Array<{
+    age: string;
+    count: number;
   }>;
   visitorsPerEvent: Array<{
     eventId: string;
