@@ -9,8 +9,8 @@ export default function EntriesPage() {
   useEffect(() => {
     apiService
       .getAdminEntries()
-      .then((data) => {
-        setEntries(data);
+      .then((res) => {
+        setEntries(res.data);
         setError('');
       })
       .catch((e: unknown) => {

@@ -31,9 +31,9 @@ export default function VisitorsPage() {
     setLoading(true);
     apiService
       .getAdminVisitors()
-      .then((data) => {
+      .then((res) => {
         if (!cancelled) {
-          setVisitors(data);
+          setVisitors(res.data);
           setError('');
         }
       })
