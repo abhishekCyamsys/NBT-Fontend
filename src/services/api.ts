@@ -222,13 +222,13 @@ export interface AdminVisitor {
 }
 
 export interface AdminVolunteer {
-  id: number;
+  id: string;
   name: string;
   email: string;
   mobileNumber: string;
-  isActive: boolean;
-  createdAt: string;
+  role: string;
   status: string;
+  createdAt: string;
 }
 
 export interface AdminCreateVolunteerPayload {
@@ -574,10 +574,12 @@ class ApiService {
     });
   }
 
-  async getAdminVolunteers() {
-    return httpJson<AdminVolunteer[]>(`${ADMIN_BASE_URL}/admin/volunteers`, {
+  async getAdminVolunteers(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
+    const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
+    return httpJson<PaginatedResponse<AdminVolunteer>>(`${ADMIN_BASE_URL}/admin/volunteers?page=${page}&limit=${limit}${fieldsQuery}`, {
       method: "GET",
       headers: this.adminHeaders(),
+      signal,
     });
   }
 
