@@ -307,6 +307,16 @@ export interface AdminTicket {
   issuedAt: string;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export interface AdminAnalytics {
   visitorsPerDay: Array<{
     date: string;
@@ -532,14 +542,14 @@ class ApiService {
   }
 
   async getAdminVisitors() {
-    return httpJson<AdminVisitor[]>(`${ADMIN_BASE_URL}/admin/visitors`, {
+    return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors`, {
       method: "GET",
       headers: this.adminHeaders(),
     });
   }
 
   async getAdminEntries() {
-    return httpJson<AdminEntry[]>(`${ADMIN_BASE_URL}/admin/entries`, {
+    return httpJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries`, {
       method: "GET",
       headers: this.adminHeaders(),
     });
