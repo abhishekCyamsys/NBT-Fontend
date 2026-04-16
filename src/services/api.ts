@@ -541,24 +541,29 @@ class ApiService {
     });
   }
 
-  async getAdminVisitors() {
-    return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors`, {
+  async getAdminVisitors(page = 1, limit = 50, signal?: AbortSignal) {
+    return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: this.adminHeaders(),
+      signal,
     });
   }
 
-  async getAdminEntries() {
-    return httpJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries`, {
+  async getAdminEntries(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
+    const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
+    return httpJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries?page=${page}&limit=${limit}${fieldsQuery}`, {
       method: "GET",
       headers: this.adminHeaders(),
+      signal,
     });
   }
 
-  async getAdminTickets() {
-    return httpJson<AdminTicket[]>(`${ADMIN_BASE_URL}/admin/tickets`, {
+  async getAdminTickets(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
+    const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
+    return httpJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}`, {
       method: "GET",
       headers: this.adminHeaders(),
+      signal,
     });
   }
 

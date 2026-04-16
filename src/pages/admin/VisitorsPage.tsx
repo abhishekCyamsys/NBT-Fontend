@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Search, Filter, X } from 'lucide-react';
-import { apiService, type AdminVisitor } from '../../services/api';
+import { ChevronDown, ChevronUp, Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiService, type AdminVisitor, type PaginatedResponse } from '../../services/api';
 
 export default function VisitorsPage() {
   const [visitors, setVisitors] = useState<AdminVisitor[]>([]);
@@ -13,6 +13,10 @@ export default function VisitorsPage() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<PaginatedResponse<AdminVisitor>['meta'] | null>(null);
+  const limit = 50;
 
   const clearFilters = () => {
     setQuery('');
@@ -27,29 +31,27 @@ export default function VisitorsPage() {
   );
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
+    // Note: In a real app, filters should ideally be handled by the backend for paginated data.
+    // For now, we fetch the current page. If filtering needs to search everything, the API should accept filter params.
     apiService
-      .getAdminVisitors()
+      .getAdminVisitors(page, limit, controller.signal)
       .then((res) => {
-        if (!cancelled) {
-          setVisitors(res.data);
-          setError('');
-        }
+        setVisitors(res.data);
+        setMeta(res.meta);
+        setError('');
       })
       .catch((e: unknown) => {
-        if (!cancelled) {
-          const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message?: unknown }).message) : 'Failed to load visitors';
-          setError(msg);
-        }
+        if (e && typeof e === 'object' && 'name' in e && e.name === 'AbortError') return;
+        const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message?: unknown }).message) : 'Failed to load visitors';
+        setError(msg);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    return () => controller.abort();
+  }, [page]);
 
   const uniqueEvents = useMemo(() => {
     const map = new Map<string, string>();
@@ -109,9 +111,16 @@ export default function VisitorsPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-gray-900">Visitors</h1>
-        <p className="mt-1 text-sm text-gray-600">All registrations with profile and entry status.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-gray-900">Visitors</h1>
+          <p className="mt-1 text-sm text-gray-600">All registrations with profile and entry status.</p>
+        </div>
+        {meta && (
+          <div className="text-right text-xs text-gray-500">
+            Total Registrations: <span className="font-semibold text-gray-900">{meta.total}</span>
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl bg-white p-5 shadow-sm">
@@ -333,6 +342,33 @@ export default function VisitorsPage() {
                 );
               })}
             </div>
+
+            {meta && meta.totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4 px-1">
+                <div className="text-xs text-gray-500">
+                  Showing <span className="font-semibold text-gray-900">{(page - 1) * limit + 1}</span> to <span className="font-semibold text-gray-900">{Math.min(page * limit, meta.total)}</span> of <span className="font-semibold text-gray-900">{meta.total}</span> visitors
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1 || loading}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-[#B30447] hover:text-[#B30447] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <div className="flex items-center gap-1 px-2 text-xs font-medium text-gray-700">
+                    Page <span className="mx-1 text-sm font-bold text-gray-900">{page}</span> of {meta.totalPages}
+                  </div>
+                  <button
+                    onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                    disabled={page === meta.totalPages || loading}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-[#B30447] hover:text-[#B30447] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
