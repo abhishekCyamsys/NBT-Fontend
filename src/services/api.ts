@@ -180,6 +180,10 @@ export interface AdminDashboardStats {
     age: string;
     count: number;
   }>;
+  visitorGenderDistribution?: Array<{
+    gender: string;
+    count: number;
+  }>;
   visitorsPerEvent: Array<{
     eventId: string;
     eventName: string;
@@ -317,22 +321,6 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface AdminAnalytics {
-  visitorsPerDay: Array<{
-    date: string;
-    totalVisitors: number;
-  }>;
-  eventAnalytics: Array<{
-    eventId: string;
-    eventName: string;
-    visitors: number;
-    totalTickets: number;
-    totalEntries: number;
-    childrenTickets: number;
-    volunteerRegistrations: number;
-  }>;
-  volunteerRegistrations: number;
-}
 
 class ApiService {
   private getVisitorJwt(): string | null {
@@ -398,7 +386,7 @@ class ApiService {
       `${VISITOR_BASE_URL}/visitors/register`,
       {
         method: "POST",
-        headers: { 
+        headers: {
           Authorization: `Bearer ${jwt}`,
           ...this.eventHeader(eventSlug)
         },
@@ -418,7 +406,7 @@ class ApiService {
   }
 
   async getVisitorEvents() {
-     const jwt = this.getVisitorJwt();
+    const jwt = this.getVisitorJwt();
     if (!jwt)
       throw { message: "Missing visitor token." } satisfies ApiError
     return httpJson<VisitorEvent[]>(`${VISITOR_BASE_URL}/visitors/events`, {
@@ -564,13 +552,6 @@ class ApiService {
       method: "GET",
       headers: this.adminHeaders(),
       signal,
-    });
-  }
-
-  async getAdminAnalytics() {
-    return httpJson<AdminAnalytics>(`${ADMIN_BASE_URL}/admin/analytics`, {
-      method: "GET",
-      headers: this.adminHeaders(),
     });
   }
 

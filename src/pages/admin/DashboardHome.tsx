@@ -43,6 +43,13 @@ export default function DashboardHome() {
       .sort((a, b) => b.value - a.value);
   }, [stats?.visitorAgeDistribution]);
 
+  const genderData = useMemo(() => {
+    if (!stats?.visitorGenderDistribution) return [];
+    return stats.visitorGenderDistribution
+      .map(d => ({ name: d.gender || 'Unknown', value: d.count }))
+      .sort((a, b) => b.value - a.value);
+  }, [stats?.visitorGenderDistribution]);
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -91,7 +98,7 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <div className="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
           <h2 className="font-display text-lg font-bold text-gray-900">Visitors per day</h2>
           <p className="mt-1 text-xs text-gray-600">Daily registrations volume</p>
@@ -160,6 +167,49 @@ export default function DashboardHome() {
             </div>
           ) : (
             <p className="mt-4 text-sm text-gray-500">No demographic data yet.</p>
+          )}
+        </div>
+
+        <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="font-display text-lg font-bold text-gray-900">Demographics (Gender)</h2>
+          <p className="mt-1 text-xs text-gray-600">Visitor gender distribution</p>
+
+          {genderData.length > 0 ? (
+            <div className="mt-4 flex flex-col items-center">
+              <div className="h-48 w-full font-sans text-xs">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {genderData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.name === 'Male' ? '#3B82F6' : entry.name === 'Female' ? '#EC4899' : PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ fontWeight: 'bold', color: '#111827' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-2 flex flex-wrap justify-center gap-3">
+                {genderData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-1.5 text-xs">
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: entry.name === 'Male' ? '#3B82F6' : entry.name === 'Female' ? '#EC4899' : PIE_COLORS[index % PIE_COLORS.length] }}></span>
+                    <span className="text-gray-600">{entry.name} ({entry.value})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">No gender data yet.</p>
           )}
         </div>
       </div>
