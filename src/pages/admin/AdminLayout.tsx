@@ -10,7 +10,6 @@ const links = [
   { to: '/admin/volunteers', label: 'Volunteers', icon: UserPlus },
   { to: '/admin/entries', label: 'Entries', icon: ScanLine },
   { to: '/admin/tickets', label: 'Tickets', icon: Ticket },
-  { to: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
 ] as const;
 
 export default function AdminLayout() {

@@ -20,7 +20,6 @@ import AdminVolunteersPage from './pages/admin/VolunteersPage';
 import AdminEventsPage from './pages/admin/EventsPage';
 import AdminEntriesPage from './pages/admin/EntriesPage';
 import AdminTicketsPage from './pages/admin/TicketsPage';
-import AdminAnalyticsPage from './pages/admin/AnalyticsPage';
 
 function App() {
   return (
@@ -53,7 +52,6 @@ function App() {
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="entries" element={<AdminEntriesPage />} />
           <Route path="tickets" element={<AdminTicketsPage />} />
-          <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
