@@ -180,6 +180,10 @@ export interface AdminDashboardStats {
     age: string;
     count: number;
   }>;
+  visitorGenderDistribution?: Array<{
+    gender: string;
+    count: number;
+  }>;
   visitorsPerEvent: Array<{
     eventId: string;
     eventName: string;
