@@ -254,6 +254,7 @@ export interface AdminEvent {
   startDate: string;
   endDate: string;
   status?: string;
+  hasRegistrations?: boolean;
 }
 
 export interface VisitorEvent {
@@ -580,8 +581,23 @@ class ApiService {
     });
   }
 
+  async updateAdminEvent(eventId: string, payload: Partial<AdminCreateEventPayload>) {
+    return httpJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`, {
+      method: "PATCH",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
   async getAdminEvents() {
     return httpJson<AdminEvent[]>(`${ADMIN_BASE_URL}/admin/events`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async getAdminEventById(eventId: string) {
+    return httpJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`, {
       method: "GET",
       headers: this.adminHeaders(),
     });
@@ -592,6 +608,16 @@ class ApiService {
       `${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/deactivate`,
       {
         method: "POST",
+        headers: this.adminHeaders(),
+      },
+    );
+  }
+
+  async deleteAdminEvent(eventId: string) {
+    return httpJson<{ success: boolean }>(
+      `${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`,
+      {
+        method: "DELETE",
         headers: this.adminHeaders(),
       },
     );
