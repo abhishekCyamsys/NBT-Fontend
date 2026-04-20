@@ -255,6 +255,7 @@ export interface AdminEvent {
   endDate: string;
   status?: string;
   hasRegistrations?: boolean;
+  registerUrl?: string;
 }
 
 export interface VisitorEvent {
