@@ -179,19 +179,19 @@ export default function VisitorTickets() {
               <Link to="/visitor/events" className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50">
                 Browse events
               </Link>
-              <Link to="/visitor/login" className="inline-flex items-center justify-center rounded-lg bg-[#B30447] px-4 py-2 text-sm font-bold text-white shadow hover:bg-[#9a033c]">
+              <Link to="/visitor/login" className="inline-flex items-center justify-center rounded-lg bg-[#334383] px-4 py-2 text-sm font-bold text-white shadow hover:bg-[#263262]">
                 Login
               </Link>
             </div>
           </>
         ) : loading && !data ? (
           <div className="flex items-center justify-center py-8">
-            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#B30447]" />
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#334383]" />
           </div>
         ) : error && !data ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4">
             <p className="text-sm font-semibold text-red-700">{error}</p>
-            <button onClick={() => navigate('/visitor/events')} className="mt-3 text-sm font-bold text-[#B30447] hover:underline">
+            <button onClick={() => navigate('/visitor/events')} className="mt-3 text-sm font-bold text-[#334383] hover:underline">
               ⟵ Back to Events
             </button>
           </div>
@@ -205,7 +205,7 @@ export default function VisitorTickets() {
 
             {data.tickets.length === 0 || data.status === 'processing' || addingChild ? (
                <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-500">
-                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-rose-100 border-t-[#B30447] mb-6" />
+                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-[#334383] mb-6" />
                  <p className="font-display font-bold text-gray-900 text-2xl">Generating your tickets...</p>
                  <p className="text-gray-500 mt-3 max-w-md mx-auto">Please stay on this page. We are securely creating your entry tickets and they will appear here momentarily.</p>
                </div>
@@ -217,14 +217,14 @@ export default function VisitorTickets() {
                     <div className="absolute -right-4 top-[45%] z-10 h-8 w-8 -translate-y-1/2 rounded-full border border-gray-100 bg-gray-50 shadow-inner"></div>
                     
                     <div className="bg-white">
-                      <div className="bg-gradient-to-br from-[#B30447] to-[#7a0230] p-6 text-white text-center">
-                        <p className="text-[10px] font-bold tracking-[0.2em] text-rose-200 uppercase mb-2">Visitor Entry Ticket</p>
+                      <div className="bg-gradient-to-br from-[#334383] to-[#7a0230] p-6 text-white text-center">
+                        <p className="text-[10px] font-bold tracking-[0.2em] text-blue-200 uppercase mb-2">Visitor Entry Ticket</p>
                         <h3 className="font-display font-extrabold text-xl leading-tight line-clamp-2">{data.event?.name || 'NBT Public Event'}</h3>
                       </div>
                       
                       <div className="px-8 pb-8 pt-6 border-b-2 border-dashed border-gray-200">
                         <div className="flex flex-col items-center">
-                          <div className="rounded-2xl border-[6px] border-rose-50 p-3 shadow-sm mb-3">
+                          <div className="rounded-2xl border-[6px] border-blue-50 p-3 shadow-sm mb-3">
                             <QRCodeSVG value={t.qrToken} size={160} level="H" includeMargin={false} />
                           </div>
                           {t.ticketNumber && <p className="text-[11px] text-gray-400 font-mono tracking-widest">{t.ticketNumber}</p>}
@@ -233,7 +233,7 @@ export default function VisitorTickets() {
                         <div className="mt-6">
                           <div className="flex items-center justify-between border-t border-gray-100 pt-4">
                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendee</p>
-                            <span className={`inline-flex rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${t.ticketType === 'child' ? 'bg-indigo-50 text-indigo-700' : 'bg-rose-50 text-[#B30447]'}`}>
+                            <span className={`inline-flex rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${t.ticketType === 'child' ? 'bg-indigo-50 text-indigo-700' : 'bg-blue-50 text-[#334383]'}`}>
                               {t.ticketType || 'Parent'}
                             </span>
 
@@ -255,7 +255,7 @@ export default function VisitorTickets() {
                               {data.event?.startDate && (
                                 <div>
                                   <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Valid Dates</p>
-                                  <p className="text-xs font-bold text-[#B30447] line-clamp-2 leading-tight">
+                                  <p className="text-xs font-bold text-[#334383] line-clamp-2 leading-tight">
                                     {new Date(data.event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric'})}
                                     {data.event?.endDate ? ` - ${new Date(data.event.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric'})}` : ''}
                                   </p>
@@ -268,7 +268,7 @@ export default function VisitorTickets() {
                     </div>
                     
                     <div data-html2canvas-ignore="true" className="bg-gray-50/80 p-4 text-center">
-                      <button onClick={() => downloadTicket(t.ticketId)} className="w-full justify-center text-sm font-bold text-[#B30447] hover:text-[#9a033c] transition inline-flex items-center gap-2">
+                      <button onClick={() => downloadTicket(t.ticketId)} className="w-full justify-center text-sm font-bold text-[#334383] hover:text-[#263262] transition inline-flex items-center gap-2">
                          <Download className="w-4 h-4" />
                          Save
                       </button>
@@ -309,7 +309,7 @@ export default function VisitorTickets() {
                         setChildPasses(next);
                       }}
                       placeholder="Full Name"
-                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-[#B30447] focus:ring-2 focus:ring-rose-100 focus:outline-none transition-shadow"
+                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-[#334383] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-shadow"
                     />
                   </div>
                   <div>
@@ -321,7 +321,7 @@ export default function VisitorTickets() {
                         next[index].age = e.target.value;
                         setChildPasses(next);
                       }}
-                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-[#B30447] focus:ring-2 focus:ring-rose-100 focus:outline-none transition-shadow"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-[#334383] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-shadow"
                     >
                       <option value="5-10">5-10 Years Old</option>
                       <option value="11-14">11-14 Years Old</option>
@@ -335,7 +335,7 @@ export default function VisitorTickets() {
                 <button
                   type="button"
                   onClick={() => setChildPasses([...childPasses, { name: '', age: '5-10' }])}
-                  className="w-full rounded-xl border-2 border-dashed border-gray-200 py-3 text-sm font-semibold text-gray-500 hover:border-[#B30447] hover:text-[#B30447] transition-colors"
+                  className="w-full rounded-xl border-2 border-dashed border-gray-200 py-3 text-sm font-semibold text-gray-500 hover:border-[#334383] hover:text-[#334383] transition-colors"
                 >
                   + Add Another Child
                 </button>
@@ -354,7 +354,7 @@ export default function VisitorTickets() {
                 <button
                   onClick={handleAddChild}
                   disabled={addingChild || childPasses.filter(c => c.name.trim()).length === 0}
-                  className="flex-1 rounded-xl bg-[#B30447] px-4 py-3 text-sm font-bold text-white hover:bg-[#9a033c] disabled:opacity-50 shadow-lg shadow-rose-200 transition-all"
+                  className="flex-1 rounded-xl bg-[#334383] px-4 py-3 text-sm font-bold text-white hover:bg-[#263262] disabled:opacity-50 shadow-lg shadow-rose-200 transition-all"
                 >
                   {addingChild ? 'Adding...' : 'Add Ticket'}
                 </button>

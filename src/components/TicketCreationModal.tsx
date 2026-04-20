@@ -72,7 +72,7 @@ export default function TicketCreationModal({
         ) : (
           <>
             <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#B30447] to-[#7a0230] text-white shadow-xl shadow-rose-200">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#334383] to-[#7a0230] text-white shadow-xl shadow-rose-200">
                 <Ticket className="h-6 w-6" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Get Your Entry Pass</h2>
@@ -83,7 +83,7 @@ export default function TicketCreationModal({
               {children.length > 0 && (
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {children.map((c, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm shadow-sm transition">
+                    <div key={i} className="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm shadow-sm transition">
                       <span className="font-bold text-gray-900">{c.name}</span>
                       <span className="text-xs text-gray-500 font-medium bg-white px-2.5 py-1 rounded-full border border-gray-100">{c.age}</span>
                     </div>
@@ -93,7 +93,7 @@ export default function TicketCreationModal({
 
               <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-5 mt-4">
                 <h5 className="font-bold text-gray-900 mb-4 text-sm flex items-center gap-2">
-                   <Users className="w-4 h-4 text-[#B30447]"/> Add Child Pass <span className="text-xs font-normal text-gray-500">(Optional)</span>
+                   <Users className="w-4 h-4 text-[#334383]"/> Add Child Pass <span className="text-xs font-normal text-gray-500">(Optional)</span>
                 </h5>
                 <div className="space-y-3">
                   <div className="grid grid-cols-5 gap-3">
@@ -101,12 +101,12 @@ export default function TicketCreationModal({
                       value={childName}
                       onChange={(e) => setChildName(e.target.value)}
                       placeholder="Child's Name"
-                      className="col-span-3 w-full rounded-xl border-2 border-transparent bg-white shadow-sm px-4 py-2.5 text-sm focus:border-[#B30447] focus:outline-none transition"
+                      className="col-span-3 w-full rounded-xl border-2 border-transparent bg-white shadow-sm px-4 py-2.5 text-sm focus:border-[#334383] focus:outline-none transition"
                     />
                     <select
                       value={childAge}
                       onChange={(e) => setChildAge(e.target.value)}
-                      className="col-span-2 w-full rounded-xl border-2 border-transparent bg-white shadow-sm px-4 py-2.5 text-sm focus:border-[#B30447] focus:outline-none transition"
+                      className="col-span-2 w-full rounded-xl border-2 border-transparent bg-white shadow-sm px-4 py-2.5 text-sm focus:border-[#334383] focus:outline-none transition"
                     >
                       <option value="0-10">0-10 Yrs</option>
                       <option value="10-18">10-18 Yrs</option>
@@ -121,7 +121,7 @@ export default function TicketCreationModal({
                         setChildAge('0-10');
                       }
                     }}
-                    className="w-full justify-center inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#B30447] border border-[#B30447] shadow-sm hover:bg-rose-50 transition"
+                    className="w-full justify-center inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#334383] border border-[#334383] shadow-sm hover:bg-blue-50 transition"
                   >
                     Add This Child
                   </button>
@@ -134,7 +134,7 @@ export default function TicketCreationModal({
                 <button
                     onClick={handleCreate}
                     disabled={loading}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#B30447] to-[#8a0236] px-4 py-4 text-base font-bold text-white shadow-xl shadow-rose-200 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#334383] to-[#8a0236] px-4 py-4 text-base font-bold text-white shadow-xl shadow-rose-200 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
                   >
                     {loading ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-white" />

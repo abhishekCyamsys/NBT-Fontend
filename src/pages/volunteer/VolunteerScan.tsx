@@ -193,7 +193,7 @@ export default function VolunteerScan() {
   }, [cameraOn]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-fuchsia-50 to-white px-4 py-8 sm:px-6 relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-fuchsia-50 to-white px-4 py-8 sm:px-6 relative">
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-2xl animate-in slide-in-from-top-8 fade-in slide-out-to-top-8 duration-300">
           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
@@ -213,7 +213,7 @@ export default function VolunteerScan() {
         <div className="mb-6 flex items-center justify-between gap-3">
           <Link
             to="/volunteer"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#B30447] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#334383] hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -231,7 +231,7 @@ export default function VolunteerScan() {
               <select
                 value={eventId}
                 onChange={(e) => setEventId(e.target.value)}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none bg-white truncate"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none bg-white truncate"
                 required
               >
                 <option value="">Select an Event</option>
@@ -247,7 +247,7 @@ export default function VolunteerScan() {
                 value={String(gateNumber)}
                 onChange={(e) => setGateNumber(Math.max(1, Number(e.target.value || '1')))}
                 inputMode="numeric"
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
                 placeholder="2"
               />
               <p className="mt-1 text-xs text-gray-500">Used for entry logs.</p>
@@ -287,7 +287,7 @@ export default function VolunteerScan() {
                   ref={inputRef}
                   value={qrToken}
                   onChange={(e) => setQrToken(e.target.value)}
-                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 pl-10 text-base focus:border-[#B30447] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 pl-10 text-base focus:border-[#334383] focus:outline-none"
                   placeholder="Paste or auto-scan QR payload"
                   inputMode="text"
                   autoComplete="off"
@@ -297,7 +297,7 @@ export default function VolunteerScan() {
               <button
                 type="submit"
                 disabled={loading || !qrToken.trim() || !eventId.trim()}
-                className="shrink-0 rounded-lg bg-[#B30447] px-6 py-3 text-base font-bold text-white shadow transition hover:bg-[#9a033c] disabled:opacity-50"
+                className="shrink-0 rounded-lg bg-[#334383] px-6 py-3 text-base font-bold text-white shadow transition hover:bg-[#263262] disabled:opacity-50"
               >
                 {loading ? '...' : 'Mark Entry'}
               </button>
@@ -314,8 +314,8 @@ export default function VolunteerScan() {
             
             {visitorInfo && (
               <div className="mt-4 bg-white/60 p-4 rounded-xl border border-black/5 flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2">
-                <div className="bg-[#B30447]/10 p-2 rounded-full hidden sm:block">
-                  <User className="h-6 w-6 text-[#B30447]" />
+                <div className="bg-[#334383]/10 p-2 rounded-full hidden sm:block">
+                  <User className="h-6 w-6 text-[#334383]" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900">{visitorInfo.name || 'Visitor Name'}</h4>

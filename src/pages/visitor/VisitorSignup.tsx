@@ -52,7 +52,7 @@ export default function VisitorSignup() {
     <div className="flex min-h-screen bg-gray-50 flex-col py-12 px-4 sm:px-6 lg:px-8 items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="rounded-2xl bg-[#B30447] p-4 inline-flex shadow-lg transition-transform hover:-translate-y-1">
+          <div className="rounded-2xl bg-[#334383] p-4 inline-flex shadow-lg transition-transform hover:-translate-y-1">
             <img src="/NBTlogo.png" alt="NBT Logo" className="h-10 w-auto" />
           </div>
           <h2 className="mt-6 text-3xl font-display font-bold text-gray-900">Register</h2>
@@ -66,7 +66,7 @@ export default function VisitorSignup() {
               <input
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
                 placeholder="John Doe"
                 required
               />
@@ -78,7 +78,7 @@ export default function VisitorSignup() {
                 <select
                   value={form.age}
                   onChange={(e) => setForm((p) => ({ ...p, age: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none bg-white"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none bg-white"
                 >
                   <option value="" disabled>Select Age Range</option>
                   <option value="18-24">18-24</option>
@@ -93,7 +93,7 @@ export default function VisitorSignup() {
                 <select
                   value={form.gender}
                   onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none bg-white"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none bg-white"
                 >
                   <option value="M">Male</option>
                   <option value="F">Female</option>
@@ -111,7 +111,7 @@ export default function VisitorSignup() {
             <button
               type="submit"
               disabled={loading || !form.name.trim()}
-              className="mt-6 w-full rounded-xl bg-[#B30447] px-4 py-3.5 text-base font-bold text-white shadow hover:bg-[#9a033c] focus:outline-none focus:ring-4 focus:ring-rose-200 disabled:opacity-50 transition"
+              className="mt-6 w-full rounded-xl bg-[#334383] px-4 py-3.5 text-base font-bold text-white shadow hover:bg-[#263262] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 transition"
             >
               {loading ? 'Processing...' : 'Register'}
             </button>

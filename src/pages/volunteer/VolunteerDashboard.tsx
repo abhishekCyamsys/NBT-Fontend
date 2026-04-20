@@ -40,7 +40,7 @@ export default function VolunteerDashboard() {
             className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm transition hover:bg-slate-800"
           >
             <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-white/5 p-3 text-[#B30447]">
+              <div className="rounded-xl bg-white/5 p-3 text-[#334383]">
                 <QrCode className="h-6 w-6" />
               </div>
               <div className="min-w-0">
@@ -55,7 +55,7 @@ export default function VolunteerDashboard() {
             className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm transition hover:bg-slate-800"
           >
             <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-white/5 p-3 text-[#B30447]">
+              <div className="rounded-xl bg-white/5 p-3 text-[#334383]">
                 <UserPlus className="h-6 w-6" />
               </div>
               <div className="min-w-0">
@@ -70,7 +70,7 @@ export default function VolunteerDashboard() {
             className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm transition hover:bg-slate-800"
           >
             <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-white/5 p-3 text-[#B30447]">
+              <div className="rounded-xl bg-white/5 p-3 text-[#334383]">
                 <History className="h-6 w-6" />
               </div>
               <div className="min-w-0">

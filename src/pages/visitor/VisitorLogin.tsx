@@ -452,7 +452,7 @@ export default function VisitorLogin() {
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Mobile Number
                   </label>
-                  <div className="group relative flex items-center rounded-xl border-2 border-gray-200 bg-gray-50 transition focus-within:border-[#B30447] focus-within:bg-white focus-within:ring-4 focus-within:ring-rose-50">
+                  <div className="group relative flex items-center rounded-xl border-2 border-gray-200 bg-gray-50 transition focus-within:border-[#334383] focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
                     <div className="flex items-center border-r border-gray-200 pl-3 pr-2">
                       <div className="relative">
                         <button
@@ -522,7 +522,7 @@ export default function VisitorLogin() {
                 <button
                   type="submit"
                   disabled={loading || mobileNumber.length !== 10}
-                  className="w-full rounded-xl bg-[#B30447] px-4 py-3.5 text-base font-bold text-white shadow-lg shadow-rose-200 transition-all hover:bg-[#9a033c] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-rose-100 disabled:opacity-50 disabled:shadow-none"
+                  className="w-full rounded-xl bg-[#334383] px-4 py-3.5 text-base font-bold text-white shadow-lg shadow-rose-200 transition-all hover:bg-[#263262] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:shadow-none"
                 >
                   {loading ? "Sending OTP..." : "Continue with Mobile"}
                 </button>
@@ -538,7 +538,7 @@ export default function VisitorLogin() {
                       setStep("mobile");
                       setOtp(["", "", "", "", "", ""]);
                     }}
-                    className="mt-1 text-xs font-semibold text-[#B30447] hover:underline"
+                    className="mt-1 text-xs font-semibold text-[#334383] hover:underline"
                   >
                     Change Number
                   </button>
@@ -556,7 +556,7 @@ export default function VisitorLogin() {
                       inputMode="numeric"
                       maxLength={6}
                       autoComplete="one-time-code"
-                      className="h-12 w-10 rounded-xl border-2 border-gray-200 bg-gray-50 text-center text-xl font-bold text-gray-900 transition-all focus:border-[#B30447] focus:bg-white focus:outline-none focus:ring-4 focus:ring-rose-50 sm:h-14 sm:w-12"
+                      className="h-12 w-10 rounded-xl border-2 border-gray-200 bg-gray-50 text-center text-xl font-bold text-gray-900 transition-all focus:border-[#334383] focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-50 sm:h-14 sm:w-12"
                       disabled={verifying || resending}
                     />
                   ))}
@@ -572,7 +572,7 @@ export default function VisitorLogin() {
                   <button
                     onClick={() => void verifyOtp()}
                     disabled={verifying || otpValue.length !== 6 || otp.some((x) => !x)}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#B30447] px-4 py-3.5 text-base font-bold text-white shadow-lg shadow-rose-200 transition-all hover:bg-[#9a033c] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-rose-100 disabled:opacity-50 disabled:shadow-none"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#334383] px-4 py-3.5 text-base font-bold text-white shadow-lg shadow-rose-200 transition-all hover:bg-[#263262] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:shadow-none"
                   >
                     <ShieldCheck className="h-5 w-5" />
                     {verifying ? "Verifying..." : "Verify OTP"}

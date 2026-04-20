@@ -63,12 +63,12 @@ export default function VolunteerOnSpotRegistration() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-fuchsia-50 to-white px-4 py-8 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-fuchsia-50 to-white px-4 py-8 sm:px-6">
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-6 flex items-center justify-between gap-3">
           <Link
             to="/volunteer"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#B30447] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#334383] hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -87,7 +87,7 @@ export default function VolunteerOnSpotRegistration() {
                 <input
                   value={form.fullName}
                   onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
                   placeholder="John Doe"
                   required
                 />
@@ -100,7 +100,7 @@ export default function VolunteerOnSpotRegistration() {
                     setForm((p) => ({ ...p, eventId: e.target.value }));
                     localStorage.setItem('scan_event_id', e.target.value);
                   }}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none bg-white truncate"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none bg-white truncate"
                   required
                 >
                   <option value="">Select an Event</option>
@@ -123,7 +123,7 @@ export default function VolunteerOnSpotRegistration() {
                     }))
                   }
                   inputMode="numeric"
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
                   placeholder="9876543210"
                   required
                 />
@@ -133,7 +133,7 @@ export default function VolunteerOnSpotRegistration() {
                 <select
                   value={form.gender}
                   onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 focus:border-[#334383] focus:outline-none"
                   required
                 >
                   <option value="M">Male</option>
@@ -149,7 +149,7 @@ export default function VolunteerOnSpotRegistration() {
                 <select
                   value={form.ageRange}
                   onChange={(e) => setForm((p) => ({ ...p, ageRange: e.target.value as AgeRange }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 focus:border-[#334383] focus:outline-none"
                   required
                 >
                   <option value="18-24">18-24</option>
@@ -166,7 +166,7 @@ export default function VolunteerOnSpotRegistration() {
                 <input
                   value={form.city}
                   onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
                   placeholder="Your City"
                 />
               </div>
@@ -180,7 +180,7 @@ export default function VolunteerOnSpotRegistration() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#B30447] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
                 placeholder="name@example.com"
               />
             </div>
@@ -188,7 +188,7 @@ export default function VolunteerOnSpotRegistration() {
             <button
               type="submit"
               disabled={loading || !form.fullName.trim() || !form.eventId}
-              className="w-full rounded-lg bg-[#B30447] px-4 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-[#9a033c] disabled:opacity-50"
+              className="w-full rounded-lg bg-[#334383] px-4 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-[#263262] disabled:opacity-50"
             >
               {loading ? 'Saving…' : 'Quick Register'}
             </button>
