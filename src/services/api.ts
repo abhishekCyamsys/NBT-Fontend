@@ -707,6 +707,21 @@ class ApiService {
     logoutAdmin() {
         localStorage.removeItem(STORAGE_KEYS.adminJwt);
     }
+
+    async getWhatsappSettings() {
+        return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+            method: "GET",
+            headers: this.adminHeaders(),
+        });
+    }
+
+    async updateWhatsappSettings(payload: any) {
+        return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+            method: "PATCH",
+            headers: this.adminHeaders(),
+            body: payload,
+        });
+    }
 }
 
 export const apiService = new ApiService();

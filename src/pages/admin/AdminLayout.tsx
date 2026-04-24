@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, CalendarRange, ScanLine, Ticket, LogOut, Menu, X, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, CalendarRange, ScanLine, Ticket, LogOut, Menu, X, ChevronDown, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { EventProvider, useEventContext } from '../../context/EventContext';
 
@@ -11,6 +11,7 @@ const links = [
   { to: '/admin/volunteers', label: 'Volunteers', icon: UserPlus },
   { to: '/admin/entries', label: 'Entries', icon: ScanLine },
   { to: '/admin/tickets', label: 'Tickets', icon: Ticket },
+  { to: '/admin/settings', label: 'Settings', icon: Settings },
 ] as const;
 
 export default function AdminLayout() {
