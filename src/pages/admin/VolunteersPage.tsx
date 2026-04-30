@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiService, type AdminVolunteer, type AdminCreateVolunteerPayload, type PaginatedResponse } from '../../services/api';
+import Loader from '../../components/Loader';
 
 export default function VolunteersPage() {
     const [volunteers, setVolunteers] = useState<AdminVolunteer[]>([]);
@@ -91,8 +92,8 @@ export default function VolunteersPage() {
 
             <div className="rounded-2xl bg-white p-5 shadow-sm">
                 {loading ? (
-                    <div className="flex h-40 items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                    <div className="flex h-64 items-center justify-center">
+                        <Loader size="md" />
                     </div>
                 ) : error ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4">

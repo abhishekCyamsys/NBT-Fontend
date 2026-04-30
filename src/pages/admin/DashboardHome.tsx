@@ -3,6 +3,7 @@ import { Users, ClipboardList, Ticket, ScanLine, Baby, UserPlus } from 'lucide-r
 import { BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { apiService, type AdminDashboardStats } from '../../services/api';
 import { useEventContext } from '../../context/EventContext';
+import Loader from '../../components/Loader';
 
 const PIE_COLORS = ['var(--primary)', '#4F46E5', '#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
 
@@ -56,8 +57,8 @@ export default function DashboardHome() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader size="md" />
       </div>
     );
   }

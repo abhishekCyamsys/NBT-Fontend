@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { apiService, type AdminEntry, type PaginatedResponse } from '../../services/api';
 import { useEventContext } from '../../context/EventContext';
+import Loader from '../../components/Loader';
 
 export default function EntriesPage() {
     const { activeEventId, isLoadingEvents } = useEventContext();
@@ -89,8 +90,8 @@ export default function EntriesPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex h-40 items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                    <div className="flex h-64 items-center justify-center">
+                        <Loader size="md" />
                     </div>
                 ) : error ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4">

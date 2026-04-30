@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Save, MessageSquare, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiService } from '../../services/api';
+import Loader from '../../components/Loader';
 
 interface WhatsappConfig {
   configName: string;
@@ -58,7 +59,7 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader size="md" />
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CalendarPlus, Ban, Eye, X, Trash2, Edit2 } from 'lucide-react';
 import { apiService, type AdminEvent, type AdminCreateEventPayload } from '../../services/api';
+import Loader from '../../components/Loader';
 
 export default function EventsPage() {
   const [events, setEvents] = useState<AdminEvent[]>([]);
@@ -250,8 +251,8 @@ export default function EventsPage() {
         <div className="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
           <h2 className="mb-3 text-sm font-semibold text-gray-900">Existing Events</h2>
           {loading ? (
-            <div className="flex h-40 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+            <div className="flex h-64 items-center justify-center">
+              <Loader size="md" />
             </div>
           ) : events.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500">No events created yet.</p>
@@ -328,7 +329,7 @@ export default function EventsPage() {
           <div className="flex-1 overflow-y-auto p-6">
             {loadingDetails ? (
               <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                <Loader size="md" />
               </div>
             ) : selectedEventDetails ? (
               isEditing ? (
