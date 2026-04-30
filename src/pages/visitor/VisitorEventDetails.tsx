@@ -69,7 +69,7 @@ export default function VisitorEventDetails() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#B30447]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function VisitorEventDetails() {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
         <p className="text-lg font-medium text-red-700">{error || 'Event not found'}</p>
-        <Link to="/visitor/events" className="mt-4 inline-block text-sm font-semibold text-[#B30447] hover:underline">
+        <Link to="/visitor/events" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
           Back to Events
         </Link>
       </div>
@@ -87,7 +87,7 @@ export default function VisitorEventDetails() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <Link to="/visitor/events" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-[#B30447] transition">
+      <Link to="/visitor/events" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary transition">
         <ArrowLeft className="h-4 w-4" /> Back to Events
       </Link>
 
@@ -103,15 +103,15 @@ export default function VisitorEventDetails() {
             <div>
               <h1 className="font-display text-3xl sm:text-4xl font-bold text-gray-900">{eventData.eventName}</h1>
               <div className="mt-4 flex flex-wrap gap-4 text-sm font-medium text-gray-600">
-                <span className="flex items-center gap-1.5"><MapPin className="h-5 w-5 text-[#B30447]" /> {eventData.venue ? `${eventData.venue}, ` : ''}{eventData.location}</span>
-                <span className="flex items-center gap-1.5"><Calendar className="h-5 w-5 text-[#B30447]" /> {new Date(eventData.startDate).toLocaleDateString()} - {new Date(eventData.endDate).toLocaleDateString()}</span>
+                <span className="flex items-center gap-1.5"><MapPin className="h-5 w-5 text-primary" /> {eventData.venue ? `${eventData.venue}, ` : ''}{eventData.location}</span>
+                <span className="flex items-center gap-1.5"><Calendar className="h-5 w-5 text-primary" /> {new Date(eventData.startDate).toLocaleDateString()} - {new Date(eventData.endDate).toLocaleDateString()}</span>
               </div>
             </div>
             
             <button
               onClick={handleCreateTicket}
               disabled={creatingTicket}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#B30447] px-6 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-[#9a033c] hover:shadow-xl focus:ring-4 focus:ring-rose-100 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary px-6 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-primary-dark hover:shadow-xl focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
             >
               <Ticket className="h-5 w-5" />
               {creatingTicket ? 'Processing...' : 'Book Ticket'}
@@ -140,15 +140,15 @@ export default function VisitorEventDetails() {
             </div>
 
             <div className="space-y-6">
-               <div className="rounded-xl bg-rose-50 border border-rose-100 p-5">
+               <div className="rounded-xl bg-blue-50 border border-blue-100 p-5">
                  <h4 className="font-bold text-gray-900 mb-2">Registration Open</h4>
                  <p className="text-sm text-gray-600 mb-4">Secure your spot online and generate a digital QR pass for fast entry.</p>
                  <ul className="text-sm text-gray-700 space-y-2 mb-6">
-                   <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-[#B30447]" /> Quick Mobile Entry</li>
-                   <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-[#B30447]" /> Easily add Child Passes</li>
-                   <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-[#B30447]" /> Skip the queues</li>
+                   <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary" /> Quick Mobile Entry</li>
+                   <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary" /> Easily add Child Passes</li>
+                   <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary" /> Skip the queues</li>
                  </ul>
-                 <button onClick={handleCreateTicket} disabled={creatingTicket} className="w-full justify-center inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-bold text-[#B30447] shadow-sm hover:bg-rose-50 border border-[#B30447] disabled:opacity-50">
+                 <button onClick={handleCreateTicket} disabled={creatingTicket} className="w-full justify-center inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-bold text-primary shadow-sm hover:bg-blue-50 border border-primary disabled:opacity-50">
                    {creatingTicket ? 'Processing...' : 'Book Ticket'}
                  </button>
               </div>

@@ -42,14 +42,61 @@ async function httpJson<TResponse>(
   const data = text ? (JSON.parse(text) as unknown) : undefined;
 
   if (!res.ok) {
-    const message =
-      isRecord(data) && typeof data.error === "string"
-        ? data.error
-        : `Request failed (${res.status})`;
+    let message = `Request failed (${res.status})`;
+    if (isRecord(data)) {
+      if (typeof data.message === "string") {
+        message = data.message;
+      } else if (Array.isArray(data.message) && data.message.length > 0 && typeof data.message[0] === "string") {
+        message = data.message[0];
+      } else if (typeof data.error === "string") {
+        message = data.error;
+      }
+    }
     throw { message, status: res.status } satisfies ApiError;
   }
 
   return data as TResponse;
+}
+
+async function httpDownload(
+  url: string,
+  options: {
+    headers?: HeadersInit;
+    signal?: AbortSignal;
+  } = {},
+): Promise<void> {
+  const res = await fetch(url, {
+    method: "GET",
+    headers: options.headers,
+    signal: options.signal,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    let message = `Download failed (${res.status})`;
+    try {
+      const data = JSON.parse(text);
+      if (isRecord(data) && typeof data.error === "string") message = data.error;
+    } catch { }
+    throw { message, status: res.status } satisfies ApiError;
+  }
+
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition");
+  let filename = "download.csv";
+  if (disposition && disposition.indexOf("filename=") !== -1) {
+    const matches = /filename="([^"]+)"/.exec(disposition);
+    if (matches && matches[1]) filename = matches[1];
+  }
+
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(downloadUrl);
 }
 
 export type OtpPurpose = "visitor_registration";
@@ -524,33 +571,37 @@ class ApiService {
     return { Authorization: `Bearer ${jwt}` };
   }
 
-  async getAdminDashboard() {
-    return httpJson<AdminDashboardStats>(`${ADMIN_BASE_URL}/admin/dashboard`, {
+  async getAdminDashboard(eventId?: string) {
+    const query = eventId ? `?eventId=${eventId}` : '';
+    return httpJson<AdminDashboardStats>(`${ADMIN_BASE_URL}/admin/dashboard${query}`, {
       method: "GET",
       headers: this.adminHeaders(),
     });
   }
 
-  async getAdminVisitors(page = 1, limit = 50, signal?: AbortSignal) {
-    return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors?page=${page}&limit=${limit}`, {
-      method: "GET",
-      headers: this.adminHeaders(),
-      signal,
-    });
-  }
-
-  async getAdminEntries(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
-    const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
-    return httpJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries?page=${page}&limit=${limit}${fieldsQuery}`, {
+  async getAdminVisitors(page = 1, limit = 50, signal?: AbortSignal, eventId?: string) {
+    const eventQuery = eventId ? `&eventId=${eventId}` : '';
+    return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors?page=${page}&limit=${limit}${eventQuery}`, {
       method: "GET",
       headers: this.adminHeaders(),
       signal,
     });
   }
 
-  async getAdminTickets(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
+  async getAdminEntries(page = 1, limit = 50, signal?: AbortSignal, fields?: string[], eventId?: string) {
     const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
-    return httpJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}`, {
+    const eventQuery = eventId ? `&eventId=${eventId}` : '';
+    return httpJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+      signal,
+    });
+  }
+
+  async getAdminTickets(page = 1, limit = 50, signal?: AbortSignal, fields?: string[], eventId?: string) {
+    const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
+    const eventQuery = eventId ? `&eventId=${eventId}` : '';
+    return httpJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
       method: "GET",
       headers: this.adminHeaders(),
       signal,
@@ -624,6 +675,33 @@ class ApiService {
     );
   }
 
+  async exportAdminVisitors(eventId?: string) {
+    const eventQuery = eventId ? `?eventId=${eventId}` : '';
+    return httpDownload(`${ADMIN_BASE_URL}/admin/visitors/export${eventQuery}`, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async exportAdminVolunteers() {
+    return httpDownload(`${ADMIN_BASE_URL}/admin/volunteers/export`, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async exportAdminEntries(eventId?: string) {
+    const eventQuery = eventId ? `?eventId=${eventId}` : '';
+    return httpDownload(`${ADMIN_BASE_URL}/admin/entries/export${eventQuery}`, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async exportAdminTickets(eventId?: string) {
+    const eventQuery = eventId ? `?eventId=${eventId}` : '';
+    return httpDownload(`${ADMIN_BASE_URL}/admin/tickets/export${eventQuery}`, {
+      headers: this.adminHeaders(),
+    });
+  }
+
   logoutVisitor() {
     localStorage.removeItem(STORAGE_KEYS.visitorJwt);
   }
@@ -634,6 +712,21 @@ class ApiService {
 
   logoutAdmin() {
     localStorage.removeItem(STORAGE_KEYS.adminJwt);
+  }
+
+  async getWhatsappSettings() {
+    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async updateWhatsappSettings(payload: any) {
+    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+      method: "PATCH",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
   }
 }
 

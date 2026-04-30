@@ -27,7 +27,7 @@ export default function VolunteerLogin() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-10 sm:px-6">
       <div className="mx-auto w-full max-w-md">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex items-center justify-center rounded-2xl bg-[#B30447] px-6 py-5 shadow-lg">
+          <div className="mx-auto mb-4 flex items-center justify-center rounded-2xl bg-primary px-6 py-5 shadow-lg">
             <img src="/NBTlogo.png" alt="NBT Logo" className="h-14 w-auto" />
           </div>
           <h1 className="font-display text-2xl font-bold text-white">Volunteer Login</h1>
@@ -45,7 +45,7 @@ export default function VolunteerLogin() {
                 <input
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                  className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#B30447] transition"
+                  className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition"
                   placeholder="Enter Username"
                   autoComplete="username"
                   required
@@ -63,7 +63,7 @@ export default function VolunteerLogin() {
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                  className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#B30447] transition"
+                  className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition"
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
@@ -79,7 +79,7 @@ export default function VolunteerLogin() {
 
             <button
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#B30447] px-4 py-3 font-semibold text-white shadow-lg transition hover:bg-[#9a033c] disabled:opacity-50"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-semibold text-white shadow-lg transition hover:bg-primary-dark disabled:opacity-50"
               type="submit"
             >
               <BadgeCheck className="h-5 w-5" />
@@ -88,7 +88,7 @@ export default function VolunteerLogin() {
           </form>
 
           <div className="mt-5 text-center">
-            <Link to="/" className="text-sm font-medium text-[#B30447] hover:underline">
+            <Link to="/" className="text-sm font-medium text-primary hover:underline">
               Back to role selection
             </Link>
           </div>

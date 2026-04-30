@@ -2,19 +2,24 @@ import { useEffect, useMemo, useState } from 'react';
 import { Users, ClipboardList, Ticket, ScanLine, Baby, UserPlus } from 'lucide-react';
 import { BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { apiService, type AdminDashboardStats } from '../../services/api';
+import { useEventContext } from '../../context/EventContext';
+import Loader from '../../components/Loader';
 
-const PIE_COLORS = ['#B30447', '#D23769', '#F06A8C', '#FFA1B6', '#FFD1DA', '#990033', '#660022'];
+const PIE_COLORS = ['var(--primary)', '#4F46E5', '#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
 
 export default function DashboardHome() {
+  const { activeEventId, isLoadingEvents } = useEventContext();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (isLoadingEvents) return; // Wait for events and activeEventId to initialize
+    
     let cancelled = false;
     setLoading(true);
 
-    apiService.getAdminDashboard()
+    apiService.getAdminDashboard(activeEventId || undefined)
       .then((dashboardData) => {
         if (!cancelled) {
           setStats(dashboardData);
@@ -34,7 +39,7 @@ export default function DashboardHome() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeEventId, isLoadingEvents]);
 
   const demographicsData = useMemo(() => {
     if (!stats?.visitorAgeDistribution) return [];
@@ -52,8 +57,8 @@ export default function DashboardHome() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#B30447]" />
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader size="md" />
       </div>
     );
   }
@@ -72,7 +77,7 @@ export default function DashboardHome() {
     { label: 'Total Tickets', value: stats?.totalTickets ?? 0, icon: Ticket, color: 'bg-purple-500' },
     { label: 'Total Entries', value: stats?.totalEntries ?? 0, icon: ScanLine, color: 'bg-emerald-500' },
     { label: 'Children Tickets', value: stats?.childrenTickets ?? 0, icon: Baby, color: 'bg-amber-500' },
-    { label: 'Volunteer Registrations', value: stats?.volunteerRegistrations ?? 0, icon: UserPlus, color: 'bg-rose-600' },
+    { label: 'Volunteer Registrations', value: stats?.volunteerRegistrations ?? 0, icon: UserPlus, color: 'bg-blue-600' },
   ] as const;
 
   return (
@@ -117,8 +122,8 @@ export default function DashboardHome() {
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                   <Bar dataKey="morningVisitors" name="Morning" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="eveningVisitors" name="Evening" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalVisitors" name="All (Total)" fill="#B30447" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="eveningVisitors" name="Evening" fill="#6366F1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalVisitors" name="All (Total)" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -227,7 +232,7 @@ export default function DashboardHome() {
                     <p className="truncate text-sm font-semibold text-gray-900">{e.eventName}</p>
                     <p className="truncate font-mono text-[11px] text-gray-500">{e.eventSlug}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-rose-50 px-2 py-1 text-xs font-bold text-[#B30447]">
+                  <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-primary">
                     {e.visitors}
                   </span>
                 </div>

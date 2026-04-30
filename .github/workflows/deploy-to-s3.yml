@@ -20,6 +20,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: prod
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -42,17 +45,11 @@ jobs:
           echo "Environment: prod"
           echo "AWS_REGION: ${{ env.AWS_REGION }}"
           echo "S3_BUCKET: ${{ env.S3_BUCKET }}"
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
-            echo "ERROR: AWS_ACCESS_KEY_ID secret is empty or not found"
+          if [ -z "${{ secrets.AWS_ROLE_ARN }}" ]; then
+            echo "ERROR: AWS_ROLE_ARN secret is empty or not found"
             exit 1
           else
-            echo "AWS_ACCESS_KEY_ID is set"
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
-            echo "ERROR: AWS_SECRET_ACCESS_KEY secret is empty or not found"
-            exit 1
-          else
-            echo "AWS_SECRET_ACCESS_KEY is set"
+            echo "AWS_ROLE_ARN is set"
           fi
           if [ -z "${{ env.VITE_AUTH_BASE_URL }}" ]; then
             echo "ERROR: VITE_AUTH_BASE_URL repo variable is empty or not found"
@@ -74,8 +71,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to S3 with proper Content-Types
