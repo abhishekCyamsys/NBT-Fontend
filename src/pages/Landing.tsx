@@ -5,7 +5,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       {/* Navbar */}
-      <header className="sticky top-0 z-50 shadow-md bg-[#334383]">
+      <header className="sticky top-0 z-50 shadow-md bg-primary">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <img src="/NBTlogo.png" alt="NBT Logo" className="h-10 w-auto transition-transform hover:scale-105" />
@@ -22,7 +22,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-[#334383] py-20 lg:py-32">
+      <section className="relative overflow-hidden bg-primary py-20 lg:py-32">
         <div className="absolute inset-0 opacity-10 mix-blend-overlay">
           <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <path d="M0,100 L100,0 M0,0 L100,100" stroke="currentColor" strokeWidth="2" />
@@ -38,7 +38,7 @@ export default function Landing() {
           <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 mt-10 flex justify-center gap-4">
             <Link
               to="/visitor/events"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-bold text-[#334383] shadow-xl transition-transform hover:scale-105"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-bold text-primary shadow-xl transition-transform hover:scale-105"
             >
               <Search className="h-5 w-5" />
               Find Events
@@ -52,7 +52,7 @@ export default function Landing() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <div className="group rounded-3xl bg-white p-8 text-center shadow-lg shadow-gray-200/50 border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-              <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#334383] group-hover:bg-[#334383] group-hover:text-white transition-colors duration-300">
+              <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                 <BookOpen className="h-8 w-8" />
               </div>
               <h3 className="font-display text-2xl font-bold text-gray-900 mb-3">Million+ Titles</h3>
@@ -60,7 +60,7 @@ export default function Landing() {
             </div>
             
             <div className="group rounded-3xl bg-white p-8 text-center shadow-lg shadow-gray-200/50 border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-              <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#334383] group-hover:bg-[#334383] group-hover:text-white transition-colors duration-300">
+              <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                 <Calendar className="h-8 w-8" />
               </div>
               <h3 className="font-display text-2xl font-bold text-gray-900 mb-3">Year-round Events</h3>
@@ -68,7 +68,7 @@ export default function Landing() {
             </div>
             
             <div className="group rounded-3xl bg-white p-8 text-center shadow-lg shadow-gray-200/50 border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-              <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#334383] group-hover:bg-[#334383] group-hover:text-white transition-colors duration-300">
+              <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                 <MapPin className="h-8 w-8" />
               </div>
               <h3 className="font-display text-2xl font-bold text-gray-900 mb-3">Nationwide Reach</h3>
@@ -82,7 +82,7 @@ export default function Landing() {
       <footer className="border-t border-gray-200 bg-white py-12">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <div className="flex justify-center">
-            <div className="rounded-2xl bg-[#334383] p-4 inline-flex shadow-lg transition-transform hover:-translate-y-1">
+            <div className="rounded-2xl bg-primary p-4 inline-flex shadow-lg transition-transform hover:-translate-y-1">
               <img src="/NBTlogo.png" alt="NBT Logo" className="h-10 w-auto" />
             </div>
           </div>

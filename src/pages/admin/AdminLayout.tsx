@@ -77,7 +77,7 @@ function AdminLayoutContent({
                 [
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                     isActive 
-                        ? 'bg-[#334383] text-white shadow-md' 
+                        ? 'bg-primary text-white shadow-md' 
                         : 'text-slate-300 hover:bg-slate-800/50 hover:text-white',
                     collapsed ? 'justify-center px-0' : '',
                 ].join(' ')
@@ -164,7 +164,7 @@ function AdminLayoutContent({
                 <select
                   value={activeEventId || ''}
                   onChange={(e) => setActiveEventId(e.target.value)}
-                  className="appearance-none cursor-pointer rounded-lg border border-slate-200 bg-slate-50 pl-3 pr-8 py-2 text-sm font-medium text-slate-800 outline-none transition focus:border-[#334383] focus:ring-2 focus:ring-blue-100 min-w-[200px] sm:min-w-[220px]"
+                  className="appearance-none cursor-pointer rounded-lg border border-slate-200 bg-slate-50 pl-3 pr-8 py-2 text-sm font-medium text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-blue-100 min-w-[200px] sm:min-w-[220px]"
                 >
                   {events.map((evt) => (
                     <option key={evt.id} value={evt.id}>

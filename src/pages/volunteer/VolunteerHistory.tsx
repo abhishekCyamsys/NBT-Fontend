@@ -11,7 +11,7 @@ export default function VolunteerHistory() {
         <div className="mb-6 flex items-center justify-between gap-3">
           <Link
             to="/volunteer"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#334383] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -24,7 +24,7 @@ export default function VolunteerHistory() {
 
         <div className="rounded-2xl bg-white p-6 shadow-xl">
           <div className="mb-4 flex items-center gap-2">
-            <History className="h-5 w-5 text-[#334383]" />
+            <History className="h-5 w-5 text-primary" />
             <p className="font-semibold text-gray-900">Recent Scans</p>
           </div>
 

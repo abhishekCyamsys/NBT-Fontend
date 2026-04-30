@@ -66,7 +66,7 @@ export default function EntriesPage() {
                 <button
                     onClick={handleExport}
                     disabled={exporting}
-                    className="flex items-center gap-2 rounded-lg bg-[#334383] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2b3970] disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2b3970] disabled:opacity-50"
                 >
                     <Download className="h-4 w-4" />
                     {exporting ? 'Exporting...' : 'Export CSV'}
@@ -82,7 +82,7 @@ export default function EntriesPage() {
                         <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 pl-9 text-sm focus:border-[#334383] focus:outline-none"
+                            className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 pl-9 text-sm focus:border-primary focus:outline-none"
                             placeholder="Search by visitor name or ticket ID"
                         />
                     </div>
@@ -90,7 +90,7 @@ export default function EntriesPage() {
 
                 {loading ? (
                     <div className="flex h-40 items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#334383]" />
+                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
                     </div>
                 ) : error ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4">

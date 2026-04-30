@@ -35,7 +35,7 @@ export default function VisitorDashboard() {
       <header className="border-b bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
-            <img src="/NBTlogo.png" alt="NBT" className="h-9 w-auto bg-[#334383] p-1 rounded-md" />
+            <img src="/NBTlogo.png" alt="NBT" className="h-9 w-auto bg-primary p-1 rounded-md" />
             <div className="min-w-0">
               <span className="font-display text-lg font-bold text-gray-900 hidden sm:inline">
                 Dashboard
@@ -63,8 +63,8 @@ export default function VisitorDashboard() {
                   [
                     'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition',
                     isActive
-                      ? 'bg-[#334383] text-white'
-                      : 'text-gray-700 hover:bg-blue-50 hover:text-[#334383]',
+                      ? 'bg-primary text-white'
+                      : 'text-gray-700 hover:bg-blue-50 hover:text-primary',
                   ].join(' ')
                 }
               >

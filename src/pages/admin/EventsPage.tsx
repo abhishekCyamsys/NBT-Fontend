@@ -146,7 +146,7 @@ export default function EventsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl bg-white p-5 shadow-sm lg:col-span-1">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <CalendarPlus className="h-4 w-4 text-[#334383]" />
+            <CalendarPlus className="h-4 w-4 text-primary" />
             Create Event
           </h2>
           <form onSubmit={create} className="space-y-3">
@@ -155,7 +155,7 @@ export default function EventsPage() {
               <input
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 required
               />
             </div>
@@ -166,7 +166,7 @@ export default function EventsPage() {
                 <input
                   value={form.location}
                   onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   required
                 />
               </div>
@@ -175,7 +175,7 @@ export default function EventsPage() {
                 <input
                   value={form.venue || ''}
                   onChange={(e) => setForm((p) => ({ ...p, venue: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function EventsPage() {
               <textarea
                 value={form.description || ''}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 rows={2}
               />
             </div>
@@ -195,7 +195,7 @@ export default function EventsPage() {
               <textarea
                 value={form.agenda || ''}
                 onChange={(e) => setForm((p) => ({ ...p, agenda: e.target.value }))}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 rows={2}
               />
             </div>
@@ -205,7 +205,7 @@ export default function EventsPage() {
               <input
                 value={form.bannerUrl || ''}
                 onChange={(e) => setForm((p) => ({ ...p, bannerUrl: e.target.value }))}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 placeholder="https://example.com/banner.jpg"
               />
             </div>
@@ -217,7 +217,7 @@ export default function EventsPage() {
                   type="datetime-local"
                   value={form.startDate}
                   onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   required
                 />
               </div>
@@ -227,7 +227,7 @@ export default function EventsPage() {
                   type="datetime-local"
                   value={form.endDate}
                   onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   required
                 />
               </div>
@@ -240,7 +240,7 @@ export default function EventsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#334383] px-3 py-2 text-sm font-semibold text-white shadow hover:bg-[#263262] disabled:opacity-50"
+              className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white shadow hover:bg-primary-dark disabled:opacity-50"
             >
               {saving ? 'Creating…' : 'Create Event'}
             </button>
@@ -251,7 +251,7 @@ export default function EventsPage() {
           <h2 className="mb-3 text-sm font-semibold text-gray-900">Existing Events</h2>
           {loading ? (
             <div className="flex h-40 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#334383]" />
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
             </div>
           ) : events.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500">No events created yet.</p>
@@ -328,7 +328,7 @@ export default function EventsPage() {
           <div className="flex-1 overflow-y-auto p-6">
             {loadingDetails ? (
               <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#334383]" />
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
               </div>
             ) : selectedEventDetails ? (
               isEditing ? (
@@ -337,43 +337,43 @@ export default function EventsPage() {
                     <h3 className="font-bold text-gray-900">Edit Event</h3>
                     <div className="flex gap-2">
                       <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50" disabled={savingEdit}>Cancel</button>
-                      <button onClick={saveEdit} className="px-3 py-1.5 text-xs font-semibold rounded-md bg-[#334383] text-white hover:bg-[#263262] disabled:opacity-50" disabled={savingEdit}>{savingEdit ? 'Saving...' : 'Save Changes'}</button>
+                      <button onClick={saveEdit} className="px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-white hover:bg-primary-dark disabled:opacity-50" disabled={savingEdit}>{savingEdit ? 'Saving...' : 'Save Changes'}</button>
                     </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-gray-700">Name</label>
-                    <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" value={editForm.name || ''} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
+                    <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={editForm.name || ''} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-gray-700">Location</label>
-                      <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" value={editForm.location || ''} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} />
+                      <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={editForm.location || ''} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-gray-700">Venue</label>
-                      <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" value={editForm.venue || ''} onChange={(e) => setEditForm((p) => ({ ...p, venue: e.target.value }))} />
+                      <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={editForm.venue || ''} onChange={(e) => setEditForm((p) => ({ ...p, venue: e.target.value }))} />
                     </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-gray-700">Description</label>
-                    <textarea className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" rows={3} value={editForm.description || ''} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} />
+                    <textarea className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" rows={3} value={editForm.description || ''} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-gray-700">Agenda</label>
-                    <textarea className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" rows={3} value={editForm.agenda || ''} onChange={(e) => setEditForm((p) => ({ ...p, agenda: e.target.value }))} />
+                    <textarea className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" rows={3} value={editForm.agenda || ''} onChange={(e) => setEditForm((p) => ({ ...p, agenda: e.target.value }))} />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-gray-700">Banner URL</label>
-                    <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" value={editForm.bannerUrl || ''} onChange={(e) => setEditForm((p) => ({ ...p, bannerUrl: e.target.value }))} />
+                    <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={editForm.bannerUrl || ''} onChange={(e) => setEditForm((p) => ({ ...p, bannerUrl: e.target.value }))} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-gray-700">Start Date</label>
-                      <input type="datetime-local" className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" value={editForm.startDate || ''} onChange={(e) => setEditForm((p) => ({ ...p, startDate: e.target.value }))} />
+                      <input type="datetime-local" className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={editForm.startDate || ''} onChange={(e) => setEditForm((p) => ({ ...p, startDate: e.target.value }))} />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-gray-700">End Date</label>
-                      <input type="datetime-local" className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none" value={editForm.endDate || ''} onChange={(e) => setEditForm((p) => ({ ...p, endDate: e.target.value }))} />
+                      <input type="datetime-local" className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={editForm.endDate || ''} onChange={(e) => setEditForm((p) => ({ ...p, endDate: e.target.value }))} />
                     </div>
                   </div>
                 </div>
@@ -383,7 +383,7 @@ export default function EventsPage() {
                     <div>
                       <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Event Name</h3>
                       <p className="mt-1 text-2xl font-bold text-gray-900">{selectedEventDetails.eventName}</p>
-                      <p className="text-sm font-medium text-[#334383] mt-1">/{selectedEventDetails.slug}</p>
+                      <p className="text-sm font-medium text-primary mt-1">/{selectedEventDetails.slug}</p>
                     </div>
                     <button
                       onClick={startEditing}
@@ -441,7 +441,7 @@ export default function EventsPage() {
                         href={selectedEventDetails.registerUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-1 inline-block text-sm font-bold text-[#334383] hover:underline"
+                        className="mt-1 inline-block text-sm font-bold text-primary hover:underline"
                       >
                         {selectedEventDetails.registerUrl}
                       </a>

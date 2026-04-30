@@ -213,7 +213,7 @@ export default function VolunteerScan() {
         <div className="mb-6 flex items-center justify-between gap-3">
           <Link
             to="/volunteer"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#334383] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -231,7 +231,7 @@ export default function VolunteerScan() {
               <select
                 value={eventId}
                 onChange={(e) => setEventId(e.target.value)}
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none bg-white truncate"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-primary focus:outline-none bg-white truncate"
                 required
               >
                 <option value="">Select an Event</option>
@@ -247,7 +247,7 @@ export default function VolunteerScan() {
                 value={String(gateNumber)}
                 onChange={(e) => setGateNumber(Math.max(1, Number(e.target.value || '1')))}
                 inputMode="numeric"
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-[#334383] focus:outline-none"
+                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-primary focus:outline-none"
                 placeholder="2"
               />
               <p className="mt-1 text-xs text-gray-500">Used for entry logs.</p>
@@ -287,7 +287,7 @@ export default function VolunteerScan() {
                   ref={inputRef}
                   value={qrToken}
                   onChange={(e) => setQrToken(e.target.value)}
-                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 pl-10 text-base focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-3 pl-10 text-base focus:border-primary focus:outline-none"
                   placeholder="Paste or auto-scan QR payload"
                   inputMode="text"
                   autoComplete="off"
@@ -297,7 +297,7 @@ export default function VolunteerScan() {
               <button
                 type="submit"
                 disabled={loading || !qrToken.trim() || !eventId.trim()}
-                className="shrink-0 rounded-lg bg-[#334383] px-6 py-3 text-base font-bold text-white shadow transition hover:bg-[#263262] disabled:opacity-50"
+                className="shrink-0 rounded-lg bg-primary px-6 py-3 text-base font-bold text-white shadow transition hover:bg-primary-dark disabled:opacity-50"
               >
                 {loading ? '...' : 'Mark Entry'}
               </button>
@@ -314,8 +314,8 @@ export default function VolunteerScan() {
             
             {visitorInfo && (
               <div className="mt-4 bg-white/60 p-4 rounded-xl border border-black/5 flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2">
-                <div className="bg-[#334383]/10 p-2 rounded-full hidden sm:block">
-                  <User className="h-6 w-6 text-[#334383]" />
+                <div className="bg-primary/10 p-2 rounded-full hidden sm:block">
+                  <User className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900">{visitorInfo.name || 'Visitor Name'}</h4>

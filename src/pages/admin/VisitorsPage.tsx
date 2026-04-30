@@ -127,7 +127,7 @@ export default function VisitorsPage() {
                     <button
                         onClick={handleExport}
                         disabled={exporting}
-                        className="flex items-center gap-2 rounded-lg bg-[#334383] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2b3970] disabled:opacity-50"
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2b3970] disabled:opacity-50"
                     >
                         <Download className="h-4 w-4" />
                         {exporting ? 'Exporting...' : 'Export CSV'}
@@ -145,14 +145,14 @@ export default function VisitorsPage() {
                             <input
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 pl-9 text-sm focus:border-[#334383] focus:outline-none"
+                                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 pl-9 text-sm focus:border-primary focus:outline-none"
                                 placeholder="Search by name, phone, or visitor ID"
                             />
                         </div>
                         {hasActiveFilters && (
                             <button
                                 onClick={clearFilters}
-                                className="flex items-center gap-1.5 rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-[#334383] hover:text-[#334383]"
+                                className="flex items-center gap-1.5 rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-primary hover:text-primary"
                             >
                                 <X className="h-4 w-4" />
                                 Clear
@@ -160,7 +160,7 @@ export default function VisitorsPage() {
                         )}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-colors ${showFilters ? 'border-[#334383] text-[#334383] bg-blue-50' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-colors ${showFilters ? 'border-primary text-primary bg-blue-50' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                         >
                             <Filter className="h-4 w-4" />
                             Filters
@@ -174,7 +174,7 @@ export default function VisitorsPage() {
                                 <select
                                     value={sourceFilter}
                                     onChange={(e) => setSourceFilter(e.target.value)}
-                                    className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#334383] focus:ring-[#334383] border bg-white"
+                                    className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-primary focus:ring-primary border bg-white"
                                 >
                                     <option value="all">All Sources</option>
                                     <option value="web">Web</option>
@@ -187,7 +187,7 @@ export default function VisitorsPage() {
                                     type="date"
                                     value={dateFilter}
                                     onChange={(e) => setDateFilter(e.target.value)}
-                                    className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#334383] focus:ring-[#334383] border bg-white"
+                                    className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-primary focus:ring-primary border bg-white"
                                 />
                             </div>
                             <div>
@@ -196,7 +196,7 @@ export default function VisitorsPage() {
                                     type="time"
                                     value={timeFilter}
                                     onChange={(e) => setTimeFilter(e.target.value)}
-                                    className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-[#334383] focus:ring-[#334383] border bg-white"
+                                    className="block w-full rounded-lg border-gray-200 p-2.5 text-sm focus:border-primary focus:ring-primary border bg-white"
                                 />
                             </div>
                         </div>
@@ -205,7 +205,7 @@ export default function VisitorsPage() {
 
                 {loading ? (
                     <div className="flex h-40 items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#334383]" />
+                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
                     </div>
                 ) : error ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -351,7 +351,7 @@ export default function VisitorsPage() {
                                     <button
                                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                                         disabled={page === 1 || loading}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-[#334383] hover:text-[#334383] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </button>
@@ -361,7 +361,7 @@ export default function VisitorsPage() {
                                     <button
                                         onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                                         disabled={page === meta.totalPages || loading}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-[#334383] hover:text-[#334383] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </button>

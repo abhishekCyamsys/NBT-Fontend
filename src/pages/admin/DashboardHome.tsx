@@ -4,7 +4,7 @@ import { BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, Responsive
 import { apiService, type AdminDashboardStats } from '../../services/api';
 import { useEventContext } from '../../context/EventContext';
 
-const PIE_COLORS = ['#334383', '#4F46E5', '#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
+const PIE_COLORS = ['var(--primary)', '#4F46E5', '#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
 
 export default function DashboardHome() {
   const { activeEventId, isLoadingEvents } = useEventContext();
@@ -57,7 +57,7 @@ export default function DashboardHome() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#334383]" />
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
       </div>
     );
   }
@@ -122,7 +122,7 @@ export default function DashboardHome() {
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                   <Bar dataKey="morningVisitors" name="Morning" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="eveningVisitors" name="Evening" fill="#6366F1" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalVisitors" name="All (Total)" fill="#334383" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalVisitors" name="All (Total)" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -231,7 +231,7 @@ export default function DashboardHome() {
                     <p className="truncate text-sm font-semibold text-gray-900">{e.eventName}</p>
                     <p className="truncate font-mono text-[11px] text-gray-500">{e.eventSlug}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-[#334383]">
+                  <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-primary">
                     {e.visitors}
                   </span>
                 </div>

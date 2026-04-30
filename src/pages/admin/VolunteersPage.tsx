@@ -81,7 +81,7 @@ export default function VolunteersPage() {
                     <button
                         type="button"
                         onClick={() => setShowAdd(true)}
-                        className="inline-flex items-center gap-2 rounded-lg bg-[#334383] px-4 py-2 text-sm font-semibold text-white shadow hover:bg-[#263262]"
+                        className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow hover:bg-primary-dark"
                     >
                         <Plus className="h-4 w-4" />
                         Add Volunteer
@@ -92,7 +92,7 @@ export default function VolunteersPage() {
             <div className="rounded-2xl bg-white p-5 shadow-sm">
                 {loading ? (
                     <div className="flex h-40 items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#334383]" />
+                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
                     </div>
                 ) : error ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -155,7 +155,7 @@ export default function VolunteersPage() {
                                     <button
                                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                                         disabled={page === 1 || loading}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-[#334383] hover:text-[#334383] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </button>
@@ -165,7 +165,7 @@ export default function VolunteersPage() {
                                     <button
                                         onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                                         disabled={page === meta.totalPages || loading}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-[#334383] hover:text-[#334383] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </button>
@@ -195,7 +195,7 @@ export default function VolunteersPage() {
                                 <input
                                     value={form.name}
                                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                                     required
                                 />
                             </div>
@@ -205,7 +205,7 @@ export default function VolunteersPage() {
                                     type="email"
                                     value={form.email}
                                     onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                                     required
                                 />
                             </div>
@@ -219,7 +219,7 @@ export default function VolunteersPage() {
                                             mobileNumber: e.target.value.replace(/\D/g, '').slice(0, 10),
                                         }))
                                     }
-                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                                     required
                                 />
                             </div>
@@ -229,7 +229,7 @@ export default function VolunteersPage() {
                                     type="password"
                                     value={form.password}
                                     onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#334383] focus:outline-none"
+                                    className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
                                     required
                                 />
                             </div>
@@ -244,7 +244,7 @@ export default function VolunteersPage() {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="flex-1 rounded-lg bg-[#334383] px-3 py-2 text-sm font-semibold text-white shadow hover:bg-[#263262] disabled:opacity-50"
+                                    className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white shadow hover:bg-primary-dark disabled:opacity-50"
                                 >
                                     {saving ? 'Saving…' : 'Save'}
                                 </button>

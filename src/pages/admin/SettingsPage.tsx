@@ -58,7 +58,7 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#334383]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -102,7 +102,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.configName || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, configName: e.target.value } : null)}
                   placeholder="e.g. Production Gupshup"
@@ -114,7 +114,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.appName || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, appName: e.target.value } : null)}
                   placeholder="Your Gupshup App Name"
@@ -126,7 +126,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.sourceNumber || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, sourceNumber: e.target.value } : null)}
                   placeholder="e.g. 918510071360"
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                 <input
                   type="password"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.apiKey || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, apiKey: e.target.value } : null)}
                   placeholder="sk_..."
@@ -157,7 +157,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium text-slate-700">API Key Header</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.apiKeyHeader || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, apiKeyHeader: e.target.value } : null)}
                   placeholder="apikey"
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium text-slate-700">API Key Prefix</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.apiKeyPrefix || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, apiKeyPrefix: e.target.value } : null)}
                   placeholder="e.g. Bearer (Optional)"
@@ -188,7 +188,7 @@ export default function SettingsPage() {
                 <input
                   type="url"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.baseUrl || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, baseUrl: e.target.value } : null)}
                   placeholder="https://api.gupshup.io"
@@ -199,7 +199,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium text-slate-700">Message API URL</label>
                 <input
                   type="url"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-[#334383] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
                   value={config?.messageApiUrl || ''}
                   onChange={e => setConfig(prev => prev ? { ...prev, messageApiUrl: e.target.value } : null)}
                   placeholder="https://api.gupshup.io/wa/api/v1/msg"
@@ -212,7 +212,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={isSaving}
-              className="inline-flex items-center gap-2 bg-[#334383] text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 hover:bg-[#28356a] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

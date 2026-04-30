@@ -82,7 +82,7 @@ export default function VisitorEvents() {
 
       {loading ? (
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#334383]" />
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
         </div>
       ) : events.length === 0 ? (
         <p className="py-8 text-center text-sm text-gray-500">No events currently available.</p>
@@ -94,7 +94,7 @@ export default function VisitorEvents() {
                 <img src={e.bannerUrl} alt={e.name} className="h-40 w-full object-cover" />
               ) : (
                 <img src={bookImg} alt={e.name} className="h-40 w-full object-cover" />
-                // <div className="h-40 w-full bg-gradient-to-br from-[#334383] to-[#7a0230] opacity-90 mix-blend-multiply" />
+                // <div className="h-40 w-full bg-gradient-to-br from-primary to-[#7a0230] opacity-90 mix-blend-multiply" />
               )}
               <div className="p-5">
                 <h3 className="font-display text-xl font-bold text-gray-900">{e.name}</h3>
@@ -112,7 +112,7 @@ export default function VisitorEvents() {
                   <button
                     onClick={() => handleCreateTicket(e)}
                     disabled={registeringEvent === (e.id || e.eventId)}
-                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-[#334383] px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-[#263262] disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-primary-dark disabled:opacity-50"
                   >
                     {registeringEvent === (e.id || e.eventId) ? 'Loading...' : 'Book Ticket'}
                   </button>

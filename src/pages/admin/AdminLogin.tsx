@@ -31,7 +31,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-10 sm:px-6">
       <div className="mx-auto w-full max-w-md">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 inline-flex items-center justify-center rounded-2xl bg-[#334383] px-6 py-5 shadow-lg">
+          <div className="mx-auto mb-4 inline-flex items-center justify-center rounded-2xl bg-primary px-6 py-5 shadow-lg">
             <img src="/NBTlogo.png" alt="NBT Logo" className="h-14 w-auto" />
           </div>
           <h1 className="font-display text-2xl font-bold text-white">Admin Login</h1>
@@ -50,7 +50,7 @@ export default function AdminLogin() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 pl-10 focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 pl-10 focus:border-primary focus:outline-none"
                   placeholder="Enter Username"
                   autoComplete="username"
                   required
@@ -68,7 +68,7 @@ export default function AdminLogin() {
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 pl-10 focus:border-[#334383] focus:outline-none"
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 pl-10 focus:border-primary focus:outline-none"
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
@@ -85,7 +85,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#334383] px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#263262] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-dark disabled:opacity-50"
             >
               <Shield className="h-5 w-5" />
               {loading ? 'Signing in…' : 'Sign in'}
@@ -93,7 +93,7 @@ export default function AdminLogin() {
           </form>
 
           <div className="mt-5 text-center">
-            <Link to="/" className="text-sm font-medium text-[#334383] hover:underline">
+            <Link to="/" className="text-sm font-medium text-primary hover:underline">
               Back to role selection
             </Link>
           </div>
