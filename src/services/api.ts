@@ -401,20 +401,20 @@ class ApiService {
     );
   }
 
-  async requestOtp(payload: OtpRequestPayload, eventSlug = 'doon-book-festivals-dehradun-2026-04-04') {
+  async requestOtp(payload: OtpRequestPayload, eventSlug?: string) {
     return httpJson<{ success: boolean; message: string; data: any }>(`${AUTH_BASE_URL}/auth/otp/request`, {
       method: "POST",
-      headers: { ...this.eventHeader(eventSlug) },
+      headers: eventSlug ? { ...this.eventHeader(eventSlug) } : {},
       body: payload,
     });
   }
 
-  async verifyOtp(payload: OtpVerifyPayload, eventSlug = 'doon-book-festivals-dehradun-2026-04-04') {
+  async verifyOtp(payload: OtpVerifyPayload, eventSlug?: string) {
     const res = await httpJson<OtpVerifyResponse>(
       `${AUTH_BASE_URL}/auth/otp/verify`,
       {
         method: "POST",
-        headers: { ...this.eventHeader(eventSlug) },
+        headers: eventSlug ? { ...this.eventHeader(eventSlug) } : {},
         body: payload,
       },
     );
@@ -424,7 +424,7 @@ class ApiService {
     return res;
   }
 
-  async registerVisitor(payload: VisitorRegisterPayload, eventSlug = 'doon-book-festivals-dehradun-2026-04-04') {
+  async registerVisitor(payload: VisitorRegisterPayload, eventSlug?: string) {
     const jwt = this.getVisitorJwt();
     if (!jwt)
       throw {
@@ -437,7 +437,7 @@ class ApiService {
         method: "POST",
         headers: {
           Authorization: `Bearer ${jwt}`,
-          ...this.eventHeader(eventSlug)
+          ...(eventSlug ? this.eventHeader(eventSlug) : {})
         },
         body: payload,
       },
@@ -461,6 +461,28 @@ class ApiService {
     return httpJson<VisitorEvent[]>(`${VISITOR_BASE_URL}/visitors/events`, {
       method: "GET",
       headers: { Authorization: `Bearer ${jwt}` },
+    });
+  }
+
+  async getVisitorProfile() {
+    const jwt = this.getVisitorJwt();
+    if (!jwt) throw { message: "Missing visitor token." } satisfies ApiError;
+    return httpJson<{ id: string; name: string; mobileNumber: string; gender: string; age: string; city?: string; email?: string }>(
+      `${VISITOR_BASE_URL}/visitors/profile`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${jwt}` },
+      }
+    );
+  }
+
+  async updateVisitorProfile(payload: Partial<{ name: string; gender: string; age: string; city: string; email: string }>) {
+    const jwt = this.getVisitorJwt();
+    if (!jwt) throw { message: "Missing visitor token." } satisfies ApiError;
+    return httpJson<any>(`${VISITOR_BASE_URL}/visitors/profile`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${jwt}` },
+      body: payload,
     });
   }
 

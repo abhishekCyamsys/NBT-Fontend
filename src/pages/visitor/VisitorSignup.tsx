@@ -12,6 +12,8 @@ export default function VisitorSignup() {
     name: '',
     age: '',
     gender: 'M',
+    city: '',
+    email: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,6 +33,8 @@ export default function VisitorSignup() {
         mobileNumber,
         age: form.age,
         gender: form.gender.toUpperCase() as any,
+        city: form.city.trim() || undefined,
+        email: form.email.trim() || undefined,
         otpVerified: true,
       }, eventId);
 
@@ -38,6 +42,8 @@ export default function VisitorSignup() {
       localStorage.setItem('visitor_name', form.name.trim());
       localStorage.setItem('visitor_age', form.age);
       localStorage.setItem('visitor_gender', form.gender.toUpperCase());
+      if (form.city.trim()) localStorage.setItem('visitor_city', form.city.trim());
+      if (form.email.trim()) localStorage.setItem('visitor_email', form.email.trim());
       navigate('/visitor/tickets');
     } catch (e) {
       const message =
@@ -99,6 +105,28 @@ export default function VisitorSignup() {
                   <option value="F">Female</option>
                   <option value="O">Other</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City (Optional)</label>
+                <input
+                  value={form.city}
+                  onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-primary focus:outline-none"
+                  placeholder="e.g. Dehradun"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                  className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-primary focus:outline-none"
+                  placeholder="name@example.com"
+                />
               </div>
             </div>
 
