@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Camera, QrCode, CheckCircle, AlertCircle, X, User } from 'lucide-react';
+import { ArrowLeft, Camera, QrCode, CheckCircle, AlertCircle, X, User, Users, ShieldAlert, Loader2 } from 'lucide-react';
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser';
 import { NotFoundException } from '@zxing/library';
-import { apiService, VisitorEvent } from '../../services/api';
+import { apiService, VisitorEvent, VolunteerGateStats } from '../../services/api';
 
 type ScanStatus = 'idle' | 'valid' | 'invalid' | 'already_entered' | 'error';
 
@@ -20,6 +20,8 @@ export default function VolunteerScan() {
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
   const [qrToken, setQrToken] = useState('');
   const [status, setStatus] = useState<ScanStatus>('idle');
   const [message, setMessage] = useState<string>('');
@@ -32,14 +34,33 @@ export default function VolunteerScan() {
   const [deviceId] = useState(() => getOrCreateId('scan_device_id'));
   const [scanDeviceId] = useState(() => localStorage.getItem('scan_scan_device_id') ?? 'web-scanner');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [stats, setStats] = useState<VolunteerGateStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState<number | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
   }, []);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ message: msg, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const fetchStats = async () => {
+    if (!eventId) return;
+    try {
+      setStatsLoading(true);
+      const data = await apiService.getVolunteerGateStats(eventId);
+      setStats(data);
+    } catch (err) {
+      console.error('Failed to fetch stats', err);
+    } finally {
+      setStatsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -62,6 +83,7 @@ export default function VolunteerScan() {
 
   useEffect(() => {
     localStorage.setItem('scan_event_id', eventId);
+    if (eventId) fetchStats();
   }, [eventId]);
 
   useEffect(() => {
@@ -88,6 +110,9 @@ export default function VolunteerScan() {
   }, [status]);
 
   const resetReady = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = null;
+    setResetCountdown(null);
     setQrToken('');
     setStatus('idle');
     setMessage('');
@@ -101,6 +126,9 @@ export default function VolunteerScan() {
     setLoading(true);
     setMessage('');
     setVisitorInfo(null);
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    setResetCountdown(null);
+
     try {
       const res = await apiService.volunteerScan({
         qrToken: qrToken.trim(),
@@ -114,6 +142,18 @@ export default function VolunteerScan() {
         setMessage(res.message || 'Valid Ticket — Entry recorded');
         setVisitorInfo(res.visitor || res.data?.visitor || null);
         showToast(res.message || "Entry marked successfully!", "success");
+        fetchStats(); // Update entry count immediately
+
+        // Auto-reset after 3 seconds
+        setResetCountdown(3);
+        const timer = setInterval(() => {
+          setResetCountdown(prev => (prev !== null && prev > 1 ? prev - 1 : null));
+        }, 1000);
+
+        resetTimerRef.current = setTimeout(() => {
+          clearInterval(timer);
+          resetReady();
+        }, 3000);
       } else {
         setStatus('error');
         setMessage(res.message || 'Scan failed');
@@ -123,6 +163,11 @@ export default function VolunteerScan() {
       setStatus('error');
       setMessage(err?.message || 'Scan failed. Please retry.');
       showToast(err?.message || 'Scan network error', "error");
+      
+      // If it's a duplicate scan error, update stats to show the incremented duplicate count
+      if (err?.status === 409) {
+        fetchStats();
+      }
     } finally {
       setLoading(false);
     }
@@ -224,6 +269,32 @@ export default function VolunteerScan() {
           </div>
         </div>
 
+        {/* Quick Stats Bar */}
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
+            <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Entries</p>
+              <div className="flex items-center gap-2">
+                {statsLoading ? <Loader2 className="h-4 w-4 animate-spin text-gray-300" /> : <p className="text-lg font-bold text-gray-900">{stats?.totalEntriesToday ?? 0}</p>}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
+            <div className="rounded-lg bg-amber-50 p-2 text-amber-600">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Blocked</p>
+              <div className="flex items-center gap-2">
+                {statsLoading ? <Loader2 className="h-4 w-4 animate-spin text-gray-300" /> : <p className="text-lg font-bold text-gray-900">{stats?.duplicatesBlocked ?? 0}</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-2xl bg-white p-6 shadow-xl">
           <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
@@ -239,7 +310,6 @@ export default function VolunteerScan() {
                   <option key={ev.id || ev.eventId} value={ev.id || ev.eventId}>{ev.slug || ev.name}</option>
                 ))}
               </select>
-              <p className="mt-1 text-xs text-gray-500">Required by backend for scan validation.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Gate Number</label>
@@ -250,7 +320,6 @@ export default function VolunteerScan() {
                 className="block w-full rounded-lg border-2 border-gray-200 px-3 py-3 focus:border-primary focus:outline-none"
                 placeholder="2"
               />
-              <p className="mt-1 text-xs text-gray-500">Used for entry logs.</p>
             </div>
           </div>
 
@@ -297,30 +366,34 @@ export default function VolunteerScan() {
               <button
                 type="submit"
                 disabled={loading || !qrToken.trim() || !eventId.trim()}
-                className="shrink-0 rounded-lg bg-primary px-6 py-3 text-base font-bold text-white shadow transition hover:bg-primary-dark disabled:opacity-50"
+                className="shrink-0 rounded-lg bg-primary px-6 py-3 text-base font-bold text-white shadow transition hover:bg-primary-dark disabled:opacity-50 min-w-[120px]"
               >
-                {loading ? '...' : 'Mark Entry'}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 'Mark Entry'}
               </button>
             </div>
           </form>
 
           <div className={`mt-6 rounded-2xl border p-5 transition-colors duration-300 ${statusStyle.bg} ${statusStyle.border}`}>
-            <p className={`font-bold text-lg mb-1 ${statusStyle.text}`}>
-              {status === 'idle' ? 'Ready for next ticket scan' : message}
-            </p>
-            <p className="text-sm text-gray-600">
-              {status === 'idle' ? 'Ensure you select the correct Gate Number for accurate entry tracking.' : 'Duplicate entry prevention is enforced by the backend automatically.'}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className={`font-bold text-lg ${statusStyle.text}`}>
+                {status === 'idle' ? 'Ready for next ticket scan' : message}
+              </p>
+              {resetCountdown !== null && (
+                <span className="text-xs font-bold bg-black/5 px-2 py-1 rounded-md text-gray-500">
+                  Resetting in {resetCountdown}s...
+                </span>
+              )}
+            </div>
             
             {visitorInfo && (
               <div className="mt-4 bg-white/60 p-4 rounded-xl border border-black/5 flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2">
                 <div className="bg-primary/10 p-2 rounded-full hidden sm:block">
                   <User className="h-6 w-6 text-primary" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">{visitorInfo.name || 'Visitor Name'}</h4>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-gray-900 truncate">{visitorInfo.name || 'Visitor Name'}</h4>
                   <p className="text-sm font-medium text-gray-600">
-                    Phone: {visitorInfo.mobileNumber || 'N/A'} • {visitorInfo.ticketType ? `Type: ${visitorInfo.ticketType}` : (visitorInfo.age ? `Age: ${visitorInfo.age}` : 'Attendee')}
+                    {visitorInfo.mobileNumber || 'N/A'} • {visitorInfo.ticketType ? `Type: ${visitorInfo.ticketType}` : (visitorInfo.age ? `Age: ${visitorInfo.age}` : 'Attendee')}
                   </p>
                   {visitorInfo.city && <p className="text-xs text-gray-500 mt-1">City: {visitorInfo.city}</p>}
                 </div>
@@ -332,7 +405,7 @@ export default function VolunteerScan() {
                 onClick={resetReady}
                 className="mt-4 w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
               >
-                Reset Scanner
+                Reset Now
               </button>
             )}
           </div>

@@ -201,6 +201,22 @@ export interface VolunteerScanPayload {
   gateNumber: number;
 }
 
+export interface VolunteerScanHistoryItem {
+  id: string;
+  entryTime: string;
+  gateNumber: number;
+  ticketType: string;
+  passNumber: string;
+  visitorName: string;
+  visitorMobile: string;
+}
+
+export interface VolunteerGateStats {
+  totalEntriesToday: number;
+  duplicatesBlocked: number;
+  lastScanTime: string | null;
+}
+
 export interface AdminLoginPayload {
   email: string;
   password: string;
@@ -568,6 +584,31 @@ class ApiService {
       method: "GET",
       headers: { Authorization: `Bearer ${jwt}` },
     });
+  }
+
+  async getVolunteerScanHistory(eventId: string, gateNumber?: number, page = 1, limit = 20) {
+    const jwt = this.getVolunteerJwt();
+    if (!jwt) throw { message: 'Missing volunteer token.' } satisfies ApiError;
+    const gateQuery = gateNumber ? `&gateNumber=${gateNumber}` : '';
+    return httpJson<PaginatedResponse<VolunteerScanHistoryItem>>(
+      `${VOLUNTEER_BASE_URL}/volunteer/scan-history?eventId=${eventId}&page=${page}&limit=${limit}${gateQuery}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${jwt}` },
+      }
+    );
+  }
+
+  async getVolunteerGateStats(eventId: string) {
+    const jwt = this.getVolunteerJwt();
+    if (!jwt) throw { message: 'Missing volunteer token.' } satisfies ApiError;
+    return httpJson<VolunteerGateStats>(
+      `${VOLUNTEER_BASE_URL}/volunteer/gate-stats?eventId=${eventId}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${jwt}` },
+      }
+    );
   }
 
   async adminLogin(payload: AdminLoginPayload) {
