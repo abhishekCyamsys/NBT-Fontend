@@ -113,12 +113,20 @@ export default function DashboardHome() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.visitorsPerDay} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} dy={10} />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#6B7280' }} 
+                    dy={10} 
+                    tickFormatter={(val) => new Date(val).toLocaleDateString([], { day: '2-digit', month: 'short' })}
+                  />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     itemStyle={{ fontWeight: 'bold' }}
                     cursor={{ fill: '#F3F4F6' }}
+                    labelFormatter={(val) => new Date(val).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                   <Bar dataKey="morningVisitors" name="Morning" fill="#3B82F6" radius={[4, 4, 0, 0]} />

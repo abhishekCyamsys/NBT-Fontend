@@ -124,8 +124,11 @@ export default function EntriesPage() {
                                                 <p className="font-medium text-gray-700">{entry.eventName}</p>
                                                 <p className="text-[11px] text-gray-500">{entry.venue}</p>
                                             </td>
-                                            <td className="px-3 py-2 text-gray-600">
-                                                {new Date(entry.entryTime).toLocaleString()}
+                                            <td className="px-3 py-2 text-xs text-gray-600">
+                                                {new Date(entry.entryTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                <div className="text-[10px] text-gray-400">
+                                                    {new Date(entry.entryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
                                             </td>
                                             <td className="px-3 py-2">
                                                 <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${entry.scanStatus === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>

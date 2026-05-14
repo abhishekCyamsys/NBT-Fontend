@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, CalendarRange, ScanLine, Ticket, LogOut, Menu, X, ChevronDown, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, CalendarRange, Clock, ScanLine, Ticket, LogOut, Menu, X, ChevronDown, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { EventProvider, useEventContext } from '../../context/EventContext';
 
 const links = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/events', label: 'Events', icon: CalendarRange },
+  { to: '/admin/sessions', label: 'Sessions', icon: Clock },
   { to: '/admin/visitors', label: 'Visitors', icon: Users },
   { to: '/admin/volunteers', label: 'Volunteers', icon: UserPlus },
   { to: '/admin/entries', label: 'Entries', icon: ScanLine },

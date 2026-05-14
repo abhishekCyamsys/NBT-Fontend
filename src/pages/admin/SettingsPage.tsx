@@ -15,42 +15,69 @@ interface WhatsappConfig {
   isActive: boolean;
 }
 
+interface SmsConfig {
+  configName: string;
+  apiUrl: string;
+  apiKey: string;
+  senderName: string;
+  templateId: string;
+  isActive: boolean;
+}
+
 export default function SettingsPage() {
-  const [config, setConfig] = useState<WhatsappConfig | null>(null);
+  const [whatsappConfig, setWhatsappConfig] = useState<WhatsappConfig | null>(null);
+  const [smsConfig, setSmsConfig] = useState<SmsConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    fetchConfig();
+    fetchConfigs();
   }, []);
 
-  const fetchConfig = async () => {
+  const fetchConfigs = async () => {
     try {
-      const data = await apiService.getWhatsappSettings();
-      setConfig(data);
+      const [waData, smsData] = await Promise.all([
+        apiService.getWhatsappSettings(),
+        apiService.getSmsSettings()
+      ]);
+      setWhatsappConfig(waData);
+      setSmsConfig(smsData);
     } catch (error) {
-      console.error('Failed to fetch WhatsApp config:', error);
+      console.error('Failed to fetch configs:', error);
       setMessage({ type: 'error', text: 'Failed to load configuration.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveWhatsapp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!config) return;
-
+    if (!whatsappConfig) return;
     setIsSaving(true);
     setMessage(null);
-
     try {
-      await apiService.updateWhatsappSettings(config);
-      setMessage({ type: 'success', text: 'Settings updated successfully!' });
-      // Clear message after 3 seconds
+      await apiService.updateWhatsappSettings(whatsappConfig);
+      setMessage({ type: 'success', text: 'WhatsApp settings updated successfully!' });
       setTimeout(() => setMessage(null), 3000);
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to update settings.' });
+      setMessage({ type: 'error', text: error.message || 'Failed to update WhatsApp settings.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveSms = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!smsConfig) return;
+    setIsSaving(true);
+    setMessage(null);
+    try {
+      await apiService.updateSmsSettings(smsConfig);
+      setMessage({ type: 'success', text: 'SMS settings updated successfully!' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Failed to update SMS settings.' });
     } finally {
       setIsSaving(false);
     }
@@ -82,6 +109,7 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* WhatsApp Section */}
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
           <div className="p-2 bg-emerald-100 rounded-lg">
@@ -93,32 +121,19 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSave} className="p-6 space-y-8">
-          {/* Basic Config */}
+        <form onSubmit={handleSaveWhatsapp} className="p-6 space-y-8">
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Basic Settings</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Configuration Name</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.configName || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, configName: e.target.value } : null)}
-                  placeholder="e.g. Production Gupshup"
-                />
-              </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">App Name</label>
                 <input
                   type="text"
                   required
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.appName || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, appName: e.target.value } : null)}
-                  placeholder="Your Gupshup App Name"
+                  value={whatsappConfig?.appName || ''}
+                  onChange={e => setWhatsappConfig(prev => prev ? { ...prev, appName: e.target.value } : null)}
+                  placeholder="NBTWhatsappReg"
                 />
               </div>
 
@@ -128,19 +143,16 @@ export default function SettingsPage() {
                   type="text"
                   required
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.sourceNumber || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, sourceNumber: e.target.value } : null)}
-                  placeholder="e.g. 918510071360"
+                  value={whatsappConfig?.sourceNumber || ''}
+                  onChange={e => setWhatsappConfig(prev => prev ? { ...prev, sourceNumber: e.target.value } : null)}
+                  placeholder="918510071360"
                 />
               </div>
             </div>
           </div>
 
-          <hr className="border-slate-100" />
-
-          {/* Authentication Config */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Authentication</h3>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Authentication & Endpoints</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2 space-y-2">
                 <label className="text-sm font-medium text-slate-700">API Key</label>
@@ -148,62 +160,31 @@ export default function SettingsPage() {
                   type="password"
                   required
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.apiKey || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, apiKey: e.target.value } : null)}
+                  value={whatsappConfig?.apiKey || ''}
+                  onChange={e => setWhatsappConfig(prev => prev ? { ...prev, apiKey: e.target.value } : null)}
                   placeholder="sk_..."
                 />
               </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">API Key Header</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.apiKeyHeader || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, apiKeyHeader: e.target.value } : null)}
-                  placeholder="apikey"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">API Key Prefix</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.apiKeyPrefix || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, apiKeyPrefix: e.target.value } : null)}
-                  placeholder="e.g. Bearer (Optional)"
-                />
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-slate-100" />
-
-          {/* URL Config */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Endpoints</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Base URL</label>
-                <input
-                  type="url"
-                  required
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.baseUrl || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, baseUrl: e.target.value } : null)}
-                  placeholder="https://api.gupshup.io"
-                />
-              </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Message API URL</label>
                 <input
                   type="url"
+                  required
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  value={config?.messageApiUrl || ''}
-                  onChange={e => setConfig(prev => prev ? { ...prev, messageApiUrl: e.target.value } : null)}
+                  value={whatsappConfig?.messageApiUrl || ''}
+                  onChange={e => setWhatsappConfig(prev => prev ? { ...prev, messageApiUrl: e.target.value } : null)}
                   placeholder="https://api.gupshup.io/wa/api/v1/msg"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">API Key Header</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  value={whatsappConfig?.apiKeyHeader || ''}
+                  onChange={e => setWhatsappConfig(prev => prev ? { ...prev, apiKeyHeader: e.target.value } : null)}
+                  placeholder="apikey"
                 />
               </div>
             </div>
@@ -215,12 +196,83 @@ export default function SettingsPage() {
               disabled={isSaving}
               className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {isSaving ? 'Saving Changes...' : 'Save Configuration'}
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save WhatsApp Settings
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* SMS Section */}
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Save className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">SMS Configuration</h2>
+            <p className="text-xs text-slate-500">Configure Muzztech API credentials for SMS messaging.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveSms} className="p-6 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-sm font-medium text-slate-700">API URL</label>
+              <input
+                type="url"
+                required
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
+                value={smsConfig?.apiUrl || ''}
+                onChange={e => setSmsConfig(prev => prev ? { ...prev, apiUrl: e.target.value } : null)}
+                placeholder="https://connect.muzztech.com/api/sms/send"
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-sm font-medium text-slate-700">API Key</label>
+              <input
+                type="password"
+                required
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
+                value={smsConfig?.apiKey || ''}
+                onChange={e => setSmsConfig(prev => prev ? { ...prev, apiKey: e.target.value } : null)}
+                placeholder="Your SMS API Key"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Sender Name</label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
+                value={smsConfig?.senderName || ''}
+                onChange={e => setSmsConfig(prev => prev ? { ...prev, senderName: e.target.value } : null)}
+                placeholder="CYMSYS"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Template ID</label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition"
+                value={smsConfig?.templateId || ''}
+                onChange={e => setSmsConfig(prev => prev ? { ...prev, templateId: e.target.value } : null)}
+                placeholder="Optional Template ID"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex items-center justify-end border-t border-slate-100">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save SMS Settings
             </button>
           </div>
         </form>
@@ -234,9 +286,8 @@ export default function SettingsPage() {
           <div>
             <h3 className="text-sm font-semibold text-slate-900">Security Warning</h3>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              Updating these credentials will take effect immediately across all WhatsApp communication channels. 
-              Ensure you have verified the Gupshup App Name and API Key. 
-              The Message API URL is typically constructed from the Base URL, but can be overridden if needed.
+              Updating these credentials will take effect immediately across all communication channels. 
+              Ensure you have verified the API keys and endpoints before saving.
             </p>
           </div>
         </div>

@@ -124,8 +124,11 @@ export default function TicketsPage() {
                                                 <p className="font-medium text-gray-700">{ticket.eventName}</p>
                                                 <p className="text-[11px] text-gray-500">{ticket.venue}</p>
                                             </td>
-                                            <td className="px-3 py-2 text-gray-600">
-                                                {new Date(ticket.issuedAt).toLocaleString()}
+                                            <td className="px-3 py-2 text-xs text-gray-600">
+                                                {new Date(ticket.issuedAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                <div className="text-[10px] text-gray-400">
+                                                    {new Date(ticket.issuedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
                                             </td>
                                             <td className="px-3 py-2">
                                                 <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${ticket.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
