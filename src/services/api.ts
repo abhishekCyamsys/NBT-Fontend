@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "http://localhost:3001";
@@ -264,6 +265,36 @@ export interface AdminDashboardStats {
     slug?: string;
   }>;
 }
+
+export interface EventSession {
+  id: string;
+  eventId: string;
+  title: string;
+  description?: string;
+  category: string;
+  speaker?: string;
+  venue?: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  organizer?: string;
+  status: string;
+}
+
+export interface CreateSessionPayload {
+  title: string;
+  description?: string;
+  category: string;
+  speaker?: string;
+  venue?: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  organizer?: string;
+  status?: string;
+}
+
+export interface UpdateSessionPayload extends Partial<CreateSessionPayload> {}
 
 export interface AdminVisitor {
   registrationId: string;
@@ -765,6 +796,96 @@ class ApiService {
     });
   }
 
+  // --- SESSION MANAGEMENT ---
+
+  async getPublicSessions(slug: string, date?: string, category?: string) {
+    const params = new URLSearchParams();
+    if (date) params.append("date", date);
+    if (category) params.append("category", category);
+    
+    const query = params.toString() ? `?${params.toString()}` : "";
+    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/public/events/slug/${encodeURIComponent(slug)}/sessions${query}`);
+  }
+
+  async getAdminSessions(eventId: string, date?: string, category?: string) {
+    const params = new URLSearchParams();
+    if (date) params.append("date", date);
+    if (category) params.append("category", category);
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions${query}`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async createAdminSession(eventId: string, payload: CreateSessionPayload) {
+    return httpJson<EventSession>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions`, {
+      method: "POST",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
+  async updateAdminSession(eventId: string, sessionId: string, payload: UpdateSessionPayload) {
+    return httpJson<EventSession>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/${encodeURIComponent(sessionId)}`, {
+      method: "PATCH",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
+  async deleteAdminSession(eventId: string, sessionId: string) {
+    return httpJson<{ success: boolean }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/${encodeURIComponent(sessionId)}`, {
+      method: "DELETE",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async bulkDeleteAdminSessions(eventId: string, sessionIds: string[]) {
+    return httpJson<{ count: number }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/bulk-delete`, {
+      method: "POST",
+      headers: this.adminHeaders(),
+      body: { sessionIds },
+    });
+  }
+
+  async importAdminSessionsCsv(eventId: string, file: File) {
+    let text = "";
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      text = await file.text();
+    } else {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      text = XLSX.utils.sheet_to_csv(worksheet);
+    }
+    
+    return httpJson<{ success: boolean; importedCount: number; errors: string[] }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/import`, {
+      method: "POST",
+      headers: this.adminHeaders(),
+      body: { csvContent: text },
+    });
+  }
+
+  // --- CATEGORIES ---
+
+  async getAdminCategories(): Promise<{ id: string; name: string }[]> {
+    return httpJson<{ id: string; name: string }[]>(`${ADMIN_BASE_URL}/admin/categories`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async createAdminCategory(name: string): Promise<{ id: string; name: string }> {
+    return httpJson<{ id: string; name: string }>(`${ADMIN_BASE_URL}/admin/categories`, {
+      method: "POST",
+      headers: this.adminHeaders(),
+      body: { name },
+    });
+  }
+
   logoutVisitor() {
     localStorage.removeItem(STORAGE_KEYS.visitorJwt);
   }
@@ -786,6 +907,21 @@ class ApiService {
 
   async updateWhatsappSettings(payload: any) {
     return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+      method: "PATCH",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
+  async getSmsSettings() {
+    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/sms`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async updateSmsSettings(payload: any) {
+    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/sms`, {
       method: "PATCH",
       headers: this.adminHeaders(),
       body: payload,

@@ -237,6 +237,14 @@ export default function VisitorEventDetails() {
                 {creatingTicket ? 'Securing Pass...' : isEventClosed ? 'Event Ended' : 'Get Free Entry Pass'}
               </button>
 
+              <button
+                onClick={() => navigate(`/visitor/events/${slug}/schedule`)}
+                className="w-full mt-4 inline-flex items-center justify-center gap-3 rounded-2xl bg-white border-2 border-gray-200 px-8 py-4 text-lg font-black text-gray-800 transition-all hover:bg-gray-50 hover:border-gray-300 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <CalendarDays className="h-6 w-6" />
+                View Event Schedule
+              </button>
+
               <p className="text-center text-xs text-gray-400 mt-6 font-medium">
                 No credit card required. Purely digital registration.
               </p>

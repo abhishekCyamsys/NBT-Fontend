@@ -263,7 +263,11 @@ export default function VisitorsPage() {
                                             </td>
                                             <td className="whitespace-nowrap px-3 py-2 text-gray-700">{v.childCount}</td>
                                             <td className="whitespace-nowrap px-3 py-2 text-xs text-gray-600">
-                                                {new Date(v.createdAt).toLocaleString()}
+                                                {new Date(v.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                <br />
+                                                <span className="text-[10px] text-gray-400">
+                                                    {new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
                                             </td>
                                         </tr>
                                     ))}
@@ -336,7 +340,7 @@ export default function VisitorsPage() {
                                         )}
 
                                         <p className="mt-3 text-[11px] text-gray-500">
-                                            Created: {new Date(v.createdAt).toLocaleString()}
+                                            Created: {new Date(v.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })} {new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
                                 );

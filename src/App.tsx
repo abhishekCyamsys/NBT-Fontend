@@ -8,6 +8,7 @@ import VolunteerHistory from './pages/volunteer/VolunteerHistory';
 import VisitorDashboard from './pages/visitor/VisitorDashboard';
 import VisitorEvents from './pages/visitor/VisitorEvents';
 import VisitorEventDetails from './pages/visitor/VisitorEventDetails';
+import VisitorSchedule from './pages/visitor/VisitorSchedule';
 import VisitorTickets from './pages/visitor/VisitorTickets';
 import VisitorProfile from './pages/visitor/VisitorProfile';
 import VisitorLogin from './pages/visitor/VisitorLogin';
@@ -20,6 +21,7 @@ import AdminVolunteersPage from './pages/admin/VolunteersPage';
 import AdminEventsPage from './pages/admin/EventsPage';
 import AdminEntriesPage from './pages/admin/EntriesPage';
 import AdminTicketsPage from './pages/admin/TicketsPage';
+import AdminSessionsPage from './pages/admin/SessionsPage';
 import AdminSettingsPage from './pages/admin/SettingsPage';
 
 function App() {
@@ -36,6 +38,7 @@ function App() {
         <Route path="/visitor" element={<VisitorDashboard />}>
           <Route path="events" element={<VisitorEvents />} />
           <Route path="events/:slug" element={<VisitorEventDetails />} />
+          <Route path="events/:slug/schedule" element={<VisitorSchedule />} />
           <Route path="tickets" element={<VisitorTickets />} />
           <Route path="profile" element={<VisitorProfile />} />
           <Route path="" element={<Navigate to="/visitor/events" replace />} />
@@ -53,6 +56,7 @@ function App() {
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="entries" element={<AdminEntriesPage />} />
           <Route path="tickets" element={<AdminTicketsPage />} />
+          <Route path="sessions" element={<AdminSessionsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
         </Route>
