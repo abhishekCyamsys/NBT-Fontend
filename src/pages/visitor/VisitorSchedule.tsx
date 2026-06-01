@@ -4,8 +4,6 @@ import { ArrowLeft, Clock, MapPin, CalendarDays, User } from 'lucide-react';
 import { apiService, type EventSession } from '../../services/api';
 import Loader from '../../components/Loader';
 
-const bookImg = '/book_lib.jpg';
-
 export default function VisitorSchedule() {
   const { slug } = useParams();
   const [sessions, setSessions] = useState<EventSession[]>([]);

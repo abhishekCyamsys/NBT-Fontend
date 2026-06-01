@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "http://localhost:3001";
 const VISITOR_BASE_URL = import.meta.env.VITE_VISITOR_BASE_URL || "http://localhost:3002";
@@ -266,6 +266,8 @@ export interface AdminDashboardStats {
   }>;
 }
 
+export type AdminAnalytics = AdminDashboardStats;
+
 export interface EventSession {
   id: string;
   eventId: string;
@@ -279,22 +281,53 @@ export interface EventSession {
   endTime: string;
   organizer?: string;
   status: string;
+  sessionImageUrls?: string;
 }
 
-export interface CreateSessionPayload {
-  title: string;
+export interface CreateSessionDto {
+  date: string;
+  images?: string[];
+  activities: Array<{
+    title: string;
+    description?: string;
+    category: string;
+    speaker?: string;
+    venue?: string;
+    startTime: string;
+    endTime: string;
+    organizer?: string;
+  }>;
+}
+
+export interface UpdateSessionPayload {
+  title?: string;
   description?: string;
-  category: string;
+  category?: string;
   speaker?: string;
   venue?: string;
-  sessionDate: string;
-  startTime: string;
-  endTime: string;
+  sessionImageUrls?: string[];
+  sessionDate?: string;
+  startTime?: string;
+  endTime?: string;
   organizer?: string;
   status?: string;
 }
 
-export interface UpdateSessionPayload extends Partial<CreateSessionPayload> {}
+export interface SyncSessionDto {
+  date: string;
+  images?: string[];
+  activities: Array<{
+    id?: string;
+    title: string;
+    description?: string;
+    category: string;
+    speaker?: string;
+    venue?: string;
+    startTime: string;
+    endTime: string;
+    organizer?: string;
+  }>;
+}
 
 export interface AdminVisitor {
   registrationId: string;
@@ -350,6 +383,7 @@ export interface AdminEvent {
   status?: string;
   hasRegistrations?: boolean;
   registerUrl?: string;
+  baseUrl?: string;
 }
 
 export interface VisitorEvent {
@@ -377,6 +411,7 @@ export interface AdminCreateEventPayload {
   bannerUrl?: string;
   startDate: string;
   endDate: string;
+  status?: string;
 }
 
 export interface AdminEntry {
@@ -396,10 +431,13 @@ export interface AdminEntry {
 
 export interface AdminTicket {
   ticketId: string;
+  id?: string;
   ticketNumber: string;
+  passNumber?: string;
   eventId: string;
   eventName: string;
   eventSlug: string;
+  venue?: string;
   visitorId: string;
   visitorName: string;
   ticketType: "parent" | "child" | string;
@@ -673,6 +711,10 @@ class ApiService {
     });
   }
 
+  async getAdminAnalytics() {
+    return this.getAdminDashboard();
+  }
+
   async getAdminVisitors(page = 1, limit = 50, signal?: AbortSignal, eventId?: string) {
     const eventQuery = eventId ? `&eventId=${eventId}` : '';
     return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors?page=${page}&limit=${limit}${eventQuery}`, {
@@ -695,11 +737,19 @@ class ApiService {
   async getAdminTickets(page = 1, limit = 50, signal?: AbortSignal, fields?: string[], eventId?: string) {
     const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
     const eventQuery = eventId ? `&eventId=${eventId}` : '';
-    return httpJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
+    const res = await httpJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
       method: "GET",
       headers: this.adminHeaders(),
       signal,
     });
+    if (res && res.data) {
+      res.data = res.data.map(t => ({
+        ...t,
+        id: t.ticketId,
+        passNumber: t.ticketNumber
+      }));
+    }
+    return res;
   }
 
   async getAdminVolunteers(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
@@ -712,7 +762,7 @@ class ApiService {
   }
 
   async createAdminVolunteer(payload: AdminCreateVolunteerPayload) {
-    return httpJson<{ id: number }>(`${ADMIN_BASE_URL}/admin/volunteers`, {
+    return httpJson<AdminVolunteer>(`${ADMIN_BASE_URL}/admin/volunteers`, {
       method: "POST",
       headers: this.adminHeaders(),
       body: payload,
@@ -720,7 +770,7 @@ class ApiService {
   }
 
   async createAdminEvent(payload: AdminCreateEventPayload) {
-    return httpJson<{ id: string }>(`${ADMIN_BASE_URL}/admin/events`, {
+    return httpJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events`, {
       method: "POST",
       headers: this.adminHeaders(),
       body: payload,
@@ -819,9 +869,25 @@ class ApiService {
     });
   }
 
-  async createAdminSession(eventId: string, payload: CreateSessionPayload) {
-    return httpJson<EventSession>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions`, {
+  async getPresignedUploadUrl(fileName: string, fileType: string) {
+    return httpJson<{ uploadUrl: string, imageUrl: string }>(`${ADMIN_BASE_URL}/admin/sessions/presigned-url`, {
       method: "POST",
+      headers: this.adminHeaders(),
+      body: { fileName, fileType },
+    });
+  }
+
+  async createAdminSession(eventId: string, payload: CreateSessionDto) {
+    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions`, {
+      method: "POST",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
+  async syncAdminSessions(eventId: string, payload: SyncSessionDto) {
+    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/sync`, {
+      method: "PUT",
       headers: this.adminHeaders(),
       body: payload,
     });

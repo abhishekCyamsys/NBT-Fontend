@@ -290,8 +290,10 @@ export default function VisitorLogin() {
 
   const resend = async () => {
     if (resendTimer > 0) return;
+    setResending(true);
     setOtp(["", "", "", "", "", ""]);
     await requestOtp();
+    setResending(false);
   };
 
   return (

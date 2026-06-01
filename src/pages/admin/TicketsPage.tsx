@@ -54,7 +54,7 @@ export default function TicketsPage() {
 
     const filtered = tickets.filter((t) =>
         t.visitorName.toLowerCase().includes(query.toLowerCase()) ||
-        t.passNumber.toLowerCase().includes(query.toLowerCase())
+        (t.passNumber || '').toLowerCase().includes(query.toLowerCase())
     );
 
     return (

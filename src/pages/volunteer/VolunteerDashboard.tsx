@@ -66,6 +66,12 @@ export default function VolunteerDashboard() {
           </button>
         </div>
 
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-950 bg-red-950/20 p-4 text-red-400">
+            <p className="text-sm font-semibold">{error}</p>
+          </div>
+        )}
+
         {/* Stats Section */}
         <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 shadow-sm backdrop-blur-sm">

@@ -1,20 +1,36 @@
 import { useEffect, useState, useRef } from 'react';
-import { CalendarPlus, Ban, Trash2, Edit2, Upload, FileUp, X, RefreshCw, Plus } from 'lucide-react';
-import { apiService, type AdminEvent, type EventSession, type CreateSessionPayload } from '../../services/api';
+import { CalendarPlus, Trash2, Edit2, FileUp, X, RefreshCw, Plus, Upload } from 'lucide-react';
+import { apiService, type EventSession, type CreateSessionDto, type UpdateSessionPayload } from '../../services/api';
 import Loader from '../../components/Loader';
 import { useEventContext } from '../../context/EventContext';
+
+interface SessionFormState {
+  title: string;
+  description: string;
+  category: string;
+  speaker: string;
+  venue: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  organizer: string;
+  status: string;
+}
 
 export default function SessionsPage() {
   const { activeEventId } = useEventContext();
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  // S3 Session Images State
+  const [sessionImages, setSessionImages] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Create / Edit Form
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editSessionId, setEditSessionId] = useState<string | null>(null);
-  const [form, setForm] = useState<CreateSessionPayload>({
+  const [form, setForm] = useState<SessionFormState>({
     title: '',
     description: '',
     category: 'Children Activities',
@@ -81,8 +97,7 @@ export default function SessionsPage() {
       const data = await apiService.getAdminSessions(eventId);
       setSessions(data);
     } catch (e) {
-      console.error(e);
-      setError('Failed to load sessions');
+      console.error('Failed to load sessions', e);
     } finally {
       setLoading(false);
     }
@@ -138,6 +153,7 @@ export default function SessionsPage() {
       organizer: '',
       status: 'active'
     });
+    setSessionImages([]);
     setIsEditing(false);
     setEditSessionId(null);
     setIsFormOpen(true);
@@ -156,9 +172,53 @@ export default function SessionsPage() {
       organizer: session.organizer || '',
       status: session.status
     });
+
+    let imgs: string[] = [];
+    if (session.sessionImageUrls) {
+      try {
+        imgs = JSON.parse(session.sessionImageUrls);
+      } catch (e) {
+        console.error('Failed to parse session images', e);
+      }
+    }
+    setSessionImages(imgs);
+
     setIsEditing(true);
     setEditSessionId(session.id);
     setIsFormOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const { uploadUrl, imageUrl } = await apiService.getPresignedUploadUrl(file.name, file.type);
+      
+      const res = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Upload failed with status ${res.status}`);
+      }
+
+      setSessionImages(prev => [...prev, imageUrl]);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setSessionImages(prev => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -166,16 +226,39 @@ export default function SessionsPage() {
     if (!activeEventId) return;
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        startTime: new Date(`${form.sessionDate}T${form.startTime}:00`).toISOString(),
-        endTime: new Date(`${form.sessionDate}T${form.endTime}:00`).toISOString(),
-      };
-
       if (isEditing && editSessionId) {
-        await apiService.updateAdminSession(activeEventId, editSessionId, payload);
+        const updatePayload: UpdateSessionPayload = {
+          title: form.title,
+          description: form.description || '',
+          category: form.category,
+          speaker: form.speaker || '',
+          venue: form.venue || '',
+          sessionDate: new Date(form.sessionDate).toISOString(),
+          startTime: new Date(`${form.sessionDate}T${form.startTime}:00`).toISOString(),
+          endTime: new Date(`${form.sessionDate}T${form.endTime}:00`).toISOString(),
+          organizer: form.organizer || '',
+          status: form.status,
+          sessionImageUrls: sessionImages,
+        };
+        await apiService.updateAdminSession(activeEventId, editSessionId, updatePayload);
       } else {
-        await apiService.createAdminSession(activeEventId, payload);
+        const createPayload: CreateSessionDto = {
+          date: form.sessionDate,
+          activities: [
+            {
+              title: form.title,
+              description: form.description || '',
+              category: form.category,
+              speaker: form.speaker || '',
+              venue: form.venue || '',
+              startTime: new Date(`${form.sessionDate}T${form.startTime}:00`).toISOString(),
+              endTime: new Date(`${form.sessionDate}T${form.endTime}:00`).toISOString(),
+              organizer: form.organizer || '',
+            }
+          ],
+          images: sessionImages,
+        };
+        await apiService.createAdminSession(activeEventId, createPayload);
       }
       setIsFormOpen(false);
       await loadSessions(activeEventId);
@@ -475,6 +558,46 @@ export default function SessionsPage() {
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700">Description</label>
                 <textarea rows={3} className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+
+              {/* Image Upload & Previews */}
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <label className="block text-xs font-semibold text-gray-700">Session Images</label>
+                
+                {/* Images Preview Strip */}
+                {sessionImages.length > 0 && (
+                  <div className="flex flex-wrap gap-3">
+                    {sessionImages.map((url, idx) => (
+                      <div key={url} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-sm">
+                        <img src={url} alt={`Session image ${idx}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-black/90 rounded-full text-white transition-opacity shadow-sm"
+                          title="Remove Image"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload Button */}
+                <div className="flex items-center gap-3">
+                  <label className={`inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 cursor-pointer ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {uploadingImage ? <RefreshCw className="h-4 w-4 animate-spin text-gray-500" /> : <Upload className="h-4 w-4 text-gray-500" />}
+                    <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                  {uploadingImage && <span className="text-xs text-gray-400 animate-pulse">Uploading directly to S3...</span>}
+                </div>
               </div>
 
             </form>

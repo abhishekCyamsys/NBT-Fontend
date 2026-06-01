@@ -9,7 +9,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     apiService
       .getAdminAnalytics()
-      .then((data) => {
+      .then((data: AdminAnalytics) => {
         setAnalytics(data);
         setError('');
       })
@@ -56,7 +56,7 @@ export default function AnalyticsPage() {
         <p className="mt-1 text-xs text-gray-600">Daily registrations volume</p>
         {analytics.visitorsPerDay?.length ? (
           <div className="mt-4 space-y-2">
-            {analytics.visitorsPerDay.map((d) => (
+            {analytics.visitorsPerDay.map((d: any) => (
               <div key={d.date} className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
                 <span className="font-mono text-xs text-gray-600">{d.date}</span>
                 <span className="text-sm font-bold text-gray-900">{d.totalVisitors}</span>
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {analytics.eventAnalytics.map((a) => (
+                  {analytics.eventAnalytics.map((a: any) => (
                     <tr key={a.eventId} className="hover:bg-gray-50">
                       <td className="px-3 py-2">
                         <p className="text-sm font-semibold text-gray-900">{a.eventName}</p>
@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:hidden">
-              {analytics.eventAnalytics.map((a) => (
+              {analytics.eventAnalytics.map((a: any) => (
                 <div key={a.eventId} className="rounded-xl border border-gray-200 p-4">
                   <p className="font-display text-sm font-bold text-gray-900">{a.eventName}</p>
                   <p className="mt-1 font-mono text-[11px] text-gray-500 break-all">{a.eventId}</p>
