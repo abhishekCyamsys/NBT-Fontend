@@ -1,20 +1,23 @@
 import { useEffect, useState, useRef } from 'react';
-import { CalendarPlus, Trash2, Edit2, FileUp, X, RefreshCw, Plus, Upload } from 'lucide-react';
-import { apiService, type EventSession, type CreateSessionDto, type UpdateSessionPayload } from '../../services/api';
+import { CalendarPlus, Trash2, Edit2, FileUp, X, RefreshCw, Plus, Upload, ChevronDown, ChevronRight } from 'lucide-react';
+import { apiService, type EventSession, type CreateSessionDto } from '../../services/api';
 import Loader from '../../components/Loader';
 import { useEventContext } from '../../context/EventContext';
 
-interface SessionFormState {
+interface ActivityState {
+  id?: string;
   title: string;
   description: string;
-  category: string;
   speaker: string;
   venue: string;
-  sessionDate: string;
   startTime: string;
   endTime: string;
   organizer: string;
-  status: string;
+}
+
+interface SessionFormState {
+  category: string;
+  sessionDate: string;
 }
 
 export default function SessionsPage() {
@@ -26,23 +29,26 @@ export default function SessionsPage() {
   const [sessionImages, setSessionImages] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Create / Edit Form
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editSessionId, setEditSessionId] = useState<string | null>(null);
   const [form, setForm] = useState<SessionFormState>({
-    title: '',
-    description: '',
     category: 'Children Activities',
-    speaker: '',
-    venue: '',
-    sessionDate: '',
-    startTime: '',
-    endTime: '',
-    organizer: '',
-    status: 'active'
+    sessionDate: ''
   });
+  const [activities, setActivities] = useState<ActivityState[]>([
+    {
+      title: '',
+      description: '',
+      speaker: '',
+      venue: '',
+      startTime: '',
+      endTime: '',
+      organizer: ''
+    }
+  ]);
+  const [originalEditKey, setOriginalEditKey] = useState<{ date: string; category: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [expandedGroupKeys, setExpandedGroupKeys] = useState<string[]>([]);
 
   // Categories
   const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
@@ -142,41 +148,62 @@ export default function SessionsPage() {
 
   const handleOpenCreate = () => {
     setForm({
-      title: '',
-      description: '',
       category: 'Children Activities',
-      speaker: '',
-      venue: '',
-      sessionDate: '',
-      startTime: '',
-      endTime: '',
-      organizer: '',
-      status: 'active'
+      sessionDate: ''
     });
+    setActivities([
+      {
+        title: '',
+        description: '',
+        speaker: '',
+        venue: '',
+        startTime: '',
+        endTime: '',
+        organizer: ''
+      }
+    ]);
     setSessionImages([]);
     setIsEditing(false);
-    setEditSessionId(null);
+    setOriginalEditKey(null);
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (session: EventSession) => {
+    const sessionDateStr = new Date(session.sessionDate).toISOString().split('T')[0];
+    
+    // Find all matching sessions on the same Date and Category to load them as a group of activities!
+    const matching = sessions.filter(
+      s => new Date(s.sessionDate).toISOString().split('T')[0] === sessionDateStr && s.category === session.category
+    );
+
     setForm({
-      title: session.title,
-      description: session.description || '',
       category: session.category,
-      speaker: session.speaker || '',
-      venue: session.venue || '',
-      sessionDate: new Date(session.sessionDate).toISOString().split('T')[0],
-      startTime: new Date(session.startTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-      endTime: new Date(session.endTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-      organizer: session.organizer || '',
-      status: session.status
+      sessionDate: sessionDateStr
     });
 
+    setActivities(matching.map(s => {
+      const start = new Date(s.startTime);
+      const end = new Date(s.endTime);
+      const formatTimePart = (d: Date) => {
+        return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      };
+      return {
+        id: s.id,
+        title: s.title,
+        description: s.description || '',
+        speaker: s.speaker || '',
+        venue: s.venue || '',
+        startTime: formatTimePart(start),
+        endTime: formatTimePart(end),
+        organizer: s.organizer || '',
+      };
+    }));
+
     let imgs: string[] = [];
-    if (session.sessionImageUrls) {
+    const sessionWithImages = matching.find(s => s.sessionImageUrls);
+    if (sessionWithImages && sessionWithImages.sessionImageUrls) {
       try {
-        imgs = JSON.parse(session.sessionImageUrls);
+        imgs = JSON.parse(sessionWithImages.sessionImageUrls);
       } catch (e) {
         console.error('Failed to parse session images', e);
       }
@@ -184,8 +211,39 @@ export default function SessionsPage() {
     setSessionImages(imgs);
 
     setIsEditing(true);
-    setEditSessionId(session.id);
+    setOriginalEditKey({
+      date: sessionDateStr,
+      category: session.category
+    });
     setIsFormOpen(true);
+  };
+
+  const handleAddActivityBlock = () => {
+    setActivities(prev => [
+      ...prev,
+      {
+        title: '',
+        description: '',
+        speaker: '',
+        venue: '',
+        startTime: '',
+        endTime: '',
+        organizer: ''
+      }
+    ]);
+  };
+
+  const handleRemoveActivityBlock = (indexToRemove: number) => {
+    setActivities(prev => prev.filter((_, i) => i !== indexToRemove));
+  };
+
+  const handleActivityFieldChange = (index: number, field: keyof ActivityState, value: string) => {
+    setActivities(prev => prev.map((act, i) => {
+      if (i === index) {
+        return { ...act, [field]: value };
+      }
+      return act;
+    }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,37 +284,67 @@ export default function SessionsPage() {
     if (!activeEventId) return;
     setSaving(true);
     try {
-      if (isEditing && editSessionId) {
-        const updatePayload: UpdateSessionPayload = {
-          title: form.title,
-          description: form.description || '',
-          category: form.category,
-          speaker: form.speaker || '',
-          venue: form.venue || '',
-          sessionDate: new Date(form.sessionDate).toISOString(),
-          startTime: new Date(`${form.sessionDate}T${form.startTime}:00`).toISOString(),
-          endTime: new Date(`${form.sessionDate}T${form.endTime}:00`).toISOString(),
-          organizer: form.organizer || '',
-          status: form.status,
-          sessionImageUrls: sessionImages,
-        };
-        await apiService.updateAdminSession(activeEventId, editSessionId, updatePayload);
+      if (isEditing && originalEditKey) {
+        const dateChanged = form.sessionDate !== originalEditKey.date;
+        const categoryChanged = form.category !== originalEditKey.category;
+
+        if (dateChanged || categoryChanged) {
+          // If date or category changed, delete the original sessions first to avoid duplicates/orphans
+          const originalSessions = sessions.filter(
+            s => new Date(s.sessionDate).toISOString().split('T')[0] === originalEditKey.date && s.category === originalEditKey.category
+          );
+          if (originalSessions.length > 0) {
+            const originalIds = originalSessions.map(s => s.id);
+            await apiService.bulkDeleteAdminSessions(activeEventId, originalIds);
+          }
+          
+          const createPayload: CreateSessionDto = {
+            date: form.sessionDate,
+            images: sessionImages,
+            activities: activities.map(act => ({
+              title: act.title,
+              description: act.description || '',
+              category: form.category,
+              speaker: act.speaker || '',
+              venue: act.venue || '',
+              startTime: new Date(`${form.sessionDate}T${act.startTime}:00`).toISOString(),
+              endTime: new Date(`${form.sessionDate}T${act.endTime}:00`).toISOString(),
+              organizer: act.organizer || '',
+            }))
+          };
+          await apiService.createAdminSession(activeEventId, createPayload);
+        } else {
+          const syncPayload: any = {
+            date: form.sessionDate,
+            images: sessionImages,
+            activities: activities.map(act => ({
+              id: act.id,
+              title: act.title,
+              description: act.description || '',
+              category: form.category,
+              speaker: act.speaker || '',
+              venue: act.venue || '',
+              startTime: new Date(`${form.sessionDate}T${act.startTime}:00`).toISOString(),
+              endTime: new Date(`${form.sessionDate}T${act.endTime}:00`).toISOString(),
+              organizer: act.organizer || '',
+            }))
+          };
+          await apiService.syncAdminSessions(activeEventId, syncPayload);
+        }
       } else {
         const createPayload: CreateSessionDto = {
           date: form.sessionDate,
-          activities: [
-            {
-              title: form.title,
-              description: form.description || '',
-              category: form.category,
-              speaker: form.speaker || '',
-              venue: form.venue || '',
-              startTime: new Date(`${form.sessionDate}T${form.startTime}:00`).toISOString(),
-              endTime: new Date(`${form.sessionDate}T${form.endTime}:00`).toISOString(),
-              organizer: form.organizer || '',
-            }
-          ],
           images: sessionImages,
+          activities: activities.map(act => ({
+            title: act.title,
+            description: act.description || '',
+            category: form.category,
+            speaker: act.speaker || '',
+            venue: act.venue || '',
+            startTime: new Date(`${form.sessionDate}T${act.startTime}:00`).toISOString(),
+            endTime: new Date(`${form.sessionDate}T${act.endTime}:00`).toISOString(),
+            organizer: act.organizer || '',
+          })),
         };
         await apiService.createAdminSession(activeEventId, createPayload);
       }
@@ -270,20 +358,41 @@ export default function SessionsPage() {
     }
   };
 
-  const handleDelete = (sessionId: string) => {
+  const handleDeleteGroup = (date: string, category: string, count: number, ids: string[]) => {
     setConfirmConfig({
-      title: 'Delete Session',
-      message: 'Are you sure you want to delete this session? This action cannot be undone.',
-      actionLabel: 'Delete',
+      title: 'Delete Schedule Block',
+      message: `Are you sure you want to delete all ${count} sessions under "${category}" on ${formatDate(date)}? This action cannot be undone.`,
+      actionLabel: 'Delete All',
       isDanger: true,
       onConfirm: async () => {
         if (!activeEventId) return;
         try {
-          await apiService.deleteAdminSession(activeEventId, sessionId);
-          setSessions((prev) => prev.filter(s => s.id !== sessionId));
-          setSelectedSessionIds(prev => prev.filter(id => id !== sessionId));
+          await apiService.bulkDeleteAdminSessions(activeEventId, ids);
+          setSessions((prev) => prev.filter(s => !ids.includes(s.id)));
+          setSelectedSessionIds(prev => prev.filter(id => !ids.includes(id)));
         } catch (er) {
-          const msg = er && typeof er === 'object' && 'message' in er ? String((er as any).message) : 'Failed to delete session';
+          const msg = er && typeof er === 'object' && 'message' in er ? String((er as any).message) : 'Failed to delete sessions';
+          setModalMessage({ title: 'Error', message: msg, type: 'error' });
+        }
+        setConfirmConfig(null);
+      }
+    });
+  };
+
+  const handleDeleteDate = (date: string, count: number, ids: string[]) => {
+    setConfirmConfig({
+      title: 'Delete Date Schedule',
+      message: `Are you sure you want to delete all ${count} sessions scheduled on ${formatDate(date)}? This action cannot be undone.`,
+      actionLabel: 'Delete All',
+      isDanger: true,
+      onConfirm: async () => {
+        if (!activeEventId) return;
+        try {
+          await apiService.bulkDeleteAdminSessions(activeEventId, ids);
+          setSessions((prev) => prev.filter(s => !ids.includes(s.id)));
+          setSelectedSessionIds(prev => prev.filter(id => !ids.includes(id)));
+        } catch (er) {
+          const msg = er && typeof er === 'object' && 'message' in er ? String((er as any).message) : 'Failed to delete sessions';
           setModalMessage({ title: 'Error', message: msg, type: 'error' });
         }
         setConfirmConfig(null);
@@ -355,6 +464,91 @@ export default function SessionsPage() {
     return new Date(isoString).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  interface CategoryGroup {
+    categoryName: string;
+    activities: EventSession[];
+    timeRange: string;
+    venue: string;
+  }
+
+  interface DateGroup {
+    dateKey: string;
+    formattedDate: string;
+    dayOfWeek: string;
+    overallTimeRange: string;
+    totalCategoriesCount: number;
+    totalSessionsCount: number;
+    venues: string;
+    categoryGroups: CategoryGroup[];
+  }
+
+  const getGroupedSessionsByDate = (sessionsList: EventSession[]): DateGroup[] => {
+    const dateGroupsMap: Record<string, EventSession[]> = {};
+    
+    sessionsList.forEach(session => {
+      const dateKey = new Date(session.sessionDate).toISOString().split('T')[0];
+      if (!dateGroupsMap[dateKey]) {
+        dateGroupsMap[dateKey] = [];
+      }
+      dateGroupsMap[dateKey].push(session);
+    });
+
+    return Object.entries(dateGroupsMap).map(([dateKey, list]) => {
+      const sortedList = [...list].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+      
+      const minStart = sortedList[0]?.startTime;
+      const maxEnd = sortedList[sortedList.length - 1]?.endTime;
+      const overallTimeRange = minStart && maxEnd ? `${formatTime(minStart)} - ${formatTime(maxEnd)}` : '-';
+      
+      const uniqueVenues = Array.from(new Set(sortedList.map(s => s.venue).filter(Boolean)));
+      const venuesDisplay = uniqueVenues.join(', ') || '-';
+      
+      const categoryMap: Record<string, EventSession[]> = {};
+      sortedList.forEach(session => {
+        if (!categoryMap[session.category]) {
+          categoryMap[session.category] = [];
+        }
+        categoryMap[session.category].push(session);
+      });
+
+      const categoryGroups: CategoryGroup[] = Object.entries(categoryMap).map(([categoryName, actList]) => {
+        const sortedActs = [...actList].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        const catStart = sortedActs[0]?.startTime;
+        const catEnd = sortedActs[sortedActs.length - 1]?.endTime;
+        const catTimeRange = catStart && catEnd ? `${formatTime(catStart)} - ${formatTime(catEnd)}` : '-';
+        const catVenues = Array.from(new Set(sortedActs.map(s => s.venue).filter(Boolean))).join(', ') || '-';
+
+        return {
+          categoryName,
+          activities: sortedActs,
+          timeRange: catTimeRange,
+          venue: catVenues
+        };
+      });
+
+      const dateObj = new Date(`${dateKey}T00:00:00`);
+      const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+      const formattedDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+
+      return {
+        dateKey,
+        formattedDate,
+        dayOfWeek,
+        overallTimeRange,
+        totalCategoriesCount: categoryGroups.length,
+        totalSessionsCount: sortedList.length,
+        venues: venuesDisplay,
+        categoryGroups
+      };
+    }).sort((a, b) => new Date(a.dateKey).getTime() - new Date(b.dateKey).getTime());
+  };
+
+  const toggleGroupExpand = (groupKey: string) => {
+    setExpandedGroupKeys(prev =>
+      prev.includes(groupKey) ? prev.filter(k => k !== groupKey) : [...prev, groupKey]
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -413,77 +607,230 @@ export default function SessionsPage() {
                     onChange={toggleSelectAll}
                   />
                 </th>
-                <th className="px-6 py-4 font-semibold">Date & Time</th>
-                <th className="px-6 py-4 font-semibold">Event/Session</th>
-                <th className="px-6 py-4 font-semibold">Category</th>
-                <th className="px-6 py-4 font-semibold">Venue</th>
-                <th className="px-6 py-4 font-semibold">Speaker</th>
+                <th className="px-6 py-4 font-semibold">Schedule Date & Day</th>
+                <th className="px-6 py-4 font-semibold">Overall Time</th>
+                <th className="px-6 py-4 font-semibold">Categories</th>
+                <th className="px-6 py-4 font-semibold">Total Sessions</th>
+                <th className="px-6 py-4 font-semibold">Venue(s)</th>
                 <th className="px-6 py-4 font-semibold text-right rounded-tr-2xl">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
+            {loading ? (
+              <tbody className="divide-y divide-gray-100">
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
                     <Loader size="md" />
                   </td>
                 </tr>
-              ) : sessions.length === 0 ? (
+              </tbody>
+            ) : sessions.length === 0 ? (
+              <tbody className="divide-y divide-gray-100">
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     No sessions found for this event.
                   </td>
                 </tr>
-              ) : (
-                sessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                    <td className="px-6 py-4">
-                      <input 
-                        type="checkbox" 
-                        className="rounded border-gray-300 text-primary focus:ring-primary"
-                        checked={selectedSessionIds.includes(session.id)}
-                        onChange={() => toggleSelectSession(session.id)}
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{formatDate(session.sessionDate)}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {formatTime(session.startTime)} - {formatTime(session.endTime)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{session.title}</div>
-                      {session.organizer && <div className="text-xs text-gray-500 mt-0.5">By {session.organizer}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                        {session.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{session.venue || '-'}</td>
-                    <td className="px-6 py-4">{session.speaker || '-'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(session)}
-                          className="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(session.id)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+              </tbody>
+            ) : (
+              getGroupedSessionsByDate(sessions).map((dateGroup) => {
+                const allDateSessionIds = dateGroup.categoryGroups.flatMap(cg => cg.activities.map(a => a.id));
+                const isAllDateSelected = allDateSessionIds.every(id => selectedSessionIds.includes(id));
+                
+                return (
+                  <tbody key={dateGroup.dateKey} className="divide-y divide-gray-100 border-b border-gray-200/65 last:border-b-0">
+                    <tr className="hover:bg-gray-50 transition-colors align-middle">
+                      <td className="px-6 py-4">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                          checked={isAllDateSelected}
+                          onChange={() => {
+                            if (isAllDateSelected) {
+                              setSelectedSessionIds(prev => prev.filter(id => !allDateSessionIds.includes(id)));
+                            } else {
+                              setSelectedSessionIds(prev => Array.from(new Set([...prev, ...allDateSessionIds])));
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <button 
+                            type="button" 
+                            onClick={() => toggleGroupExpand(dateGroup.dateKey)} 
+                            className="p-1 hover:bg-gray-100 rounded mr-2 transition-colors inline-flex items-center text-gray-500 hover:text-gray-700"
+                            title={expandedGroupKeys.includes(dateGroup.dateKey) ? "Collapse Details" : "Expand Details"}
+                          >
+                            {expandedGroupKeys.includes(dateGroup.dateKey) ? (
+                              <ChevronDown className="h-5 w-5" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5" />
+                            )}
+                          </button>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900 font-display text-sm">
+                              {dateGroup.formattedDate}
+                            </span>
+                            <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-0.5 bg-primary/10 px-1.5 py-0.5 rounded w-max">
+                              {dateGroup.dayOfWeek} Schedule of Event
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-gray-700">{dateGroup.overallTimeRange}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                          {dateGroup.totalCategoriesCount} {dateGroup.totalCategoriesCount === 1 ? 'Category' : 'Categories'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                          <span className="h-1.5 w-1.5 rounded-full bg-gray-500"></span>
+                          {dateGroup.totalSessionsCount} {dateGroup.totalSessionsCount === 1 ? 'Session' : 'Sessions'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 truncate max-w-[180px]" title={dateGroup.venues}>
+                        {dateGroup.venues}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleDeleteDate(dateGroup.dateKey, dateGroup.totalSessionsCount, allDateSessionIds)}
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            title="Delete Date Schedule"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    {/* Collapsible Sub-Table showing the category sections and nested sessions inside this block */}
+                    {expandedGroupKeys.includes(dateGroup.dateKey) && (
+                      <tr className="bg-gray-50/20 border-t-0">
+                        <td colSpan={7} className="px-6 py-4">
+                          <div className="border border-gray-200/80 rounded-xl bg-white shadow-sm p-6 space-y-6 ml-8 mr-2 my-1">
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-3 flex justify-between items-center">
+                              <span>SCHEDULE OF EVENTS DETAIL</span>
+                              <span className="text-primary font-semibold lowercase font-normal">({dateGroup.totalSessionsCount} sessions across {dateGroup.totalCategoriesCount} categories)</span>
+                            </div>
+                            
+                            <div className="space-y-8">
+                              {dateGroup.categoryGroups.map((catGroup) => {
+                                const allCatSessionIds = catGroup.activities.map(a => a.id);
+                                const isAllCatSelected = allCatSessionIds.every(id => selectedSessionIds.includes(id));
+                                
+                                return (
+                                  <div key={catGroup.categoryName} className="space-y-3 bg-gray-50/30 p-4 rounded-xl border border-gray-150 shadow-sm">
+                                    <div className="flex items-center justify-between border-b border-gray-200/60 pb-2">
+                                      <div className="flex items-center gap-3">
+                                        <input 
+                                          type="checkbox"
+                                          className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                                          checked={isAllCatSelected}
+                                          onChange={() => {
+                                            if (isAllCatSelected) {
+                                              setSelectedSessionIds(prev => prev.filter(id => !allCatSessionIds.includes(id)));
+                                            } else {
+                                              setSelectedSessionIds(prev => Array.from(new Set([...prev, ...allCatSessionIds])));
+                                            }
+                                          }}
+                                        />
+                                        <h3 className="text-sm font-bold text-gray-900 tracking-tight font-display">
+                                          {catGroup.categoryName}
+                                        </h3>
+                                        <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                          {catGroup.timeRange}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => handleOpenEdit(catGroup.activities[0])}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 rounded-md transition-colors shadow-sm"
+                                          title={`Edit ${catGroup.categoryName}`}
+                                        >
+                                          <Edit2 className="h-3 w-3" />
+                                          <span>Edit Block</span>
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteGroup(dateGroup.dateKey, catGroup.categoryName, catGroup.activities.length, allCatSessionIds)}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-red-600 bg-white hover:bg-gray-100 border border-red-200 rounded-md transition-colors shadow-sm"
+                                          title={`Delete ${catGroup.categoryName}`}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                          <span>Delete Block</span>
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                                      <table className="w-full text-left text-xs text-gray-600">
+                                        <thead className="bg-gray-50 text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-200">
+                                          <tr>
+                                            <th className="px-4 py-2.5 font-bold w-8">Select</th>
+                                            <th className="px-4 py-2.5 font-bold w-36">Time</th>
+                                            <th className="px-4 py-2.5 font-bold">Event / Session</th>
+                                            <th className="px-4 py-2.5 font-bold w-48">Speaker / Presenter</th>
+                                            <th className="px-4 py-2.5 font-bold w-48">Venue</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 font-medium">
+                                          {catGroup.activities.map((activity) => (
+                                            <tr key={activity.id} className="hover:bg-gray-50/50 transition-colors">
+                                              <td className="px-4 py-3">
+                                                <input 
+                                                  type="checkbox" 
+                                                  className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                                                  checked={selectedSessionIds.includes(activity.id)}
+                                                  onChange={() => toggleSelectSession(activity.id)}
+                                                />
+                                              </td>
+                                              <td className="px-4 py-3 text-primary font-bold whitespace-nowrap">
+                                                {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
+                                              </td>
+                                              <td className="px-4 py-3">
+                                                <div className="space-y-1">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="font-bold text-gray-900">{activity.title}</span>
+                                                    {activity.organizer && (
+                                                      <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                                        By {activity.organizer}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                  {activity.description && (
+                                                    <p className="text-[11px] text-gray-500 italic leading-relaxed max-w-2xl bg-gray-50/60 p-1.5 rounded border border-gray-100/60 mt-1 font-normal">
+                                                      {activity.description}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              </td>
+                                              <td className="px-4 py-3 text-gray-700 font-semibold">
+                                                {activity.speaker || '-'}
+                                              </td>
+                                              <td className="px-4 py-3 text-gray-700">
+                                                <span className="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 font-bold text-gray-800">
+                                                  {activity.venue || '-'}
+                                                </span>
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                );
+              })
+            )}
           </table>
         </div>
       </div>
@@ -505,11 +852,6 @@ export default function SessionsPage() {
           </div>
           <div className="flex-1 overflow-y-auto p-6">
             <form id="sessionForm" onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Event/Session <span className="text-red-500">*</span></label>
-                <input required className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700">Category <span className="text-red-500">*</span></label>
@@ -529,35 +871,116 @@ export default function SessionsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">Start Time <span className="text-red-500">*</span></label>
-                  <input type="time" required className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} />
+              {/* Dynamic Activities List */}
+              <div className="border-t border-gray-100 pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-gray-900">Activities / Sessions Schedule</span>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">End Time <span className="text-red-500">*</span></label>
-                  <input type="time" required className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
+
+                <div className="space-y-6">
+                  {activities.map((activity, idx) => (
+                    <div key={idx} className="border-2 border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3 relative">
+                      <div className="flex justify-between items-center border-b border-gray-100 pb-2 mb-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Activity #{idx + 1}</h4>
+                        {activities.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveActivityBlock(idx)}
+                            className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-md transition-colors"
+                            title="Remove Activity"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold text-gray-700">Activity Title <span className="text-red-500">*</span></label>
+                        <input
+                          required
+                          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                          value={activity.title}
+                          onChange={(e) => handleActivityFieldChange(idx, 'title', e.target.value)}
+                          placeholder="e.g. Storytelling session"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="mb-1 block text-xs font-semibold text-gray-700">Start Time <span className="text-red-500">*</span></label>
+                          <input
+                            type="time"
+                            required
+                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                            value={activity.startTime}
+                            onChange={(e) => handleActivityFieldChange(idx, 'startTime', e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-semibold text-gray-700">End Time <span className="text-red-500">*</span></label>
+                          <input
+                            type="time"
+                            required
+                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                            value={activity.endTime}
+                            onChange={(e) => handleActivityFieldChange(idx, 'endTime', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="mb-1 block text-xs font-semibold text-gray-700">Speaker / Presenter</label>
+                          <input
+                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                            value={activity.speaker}
+                            onChange={(e) => handleActivityFieldChange(idx, 'speaker', e.target.value)}
+                            placeholder="e.g. Rajesh Pandey"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-semibold text-gray-700">Venue / Location</label>
+                          <input
+                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                            value={activity.venue}
+                            onChange={(e) => handleActivityFieldChange(idx, 'venue', e.target.value)}
+                            placeholder="e.g. Children Corner"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold text-gray-700">Organizer</label>
+                        <input
+                          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                          value={activity.organizer}
+                          onChange={(e) => handleActivityFieldChange(idx, 'organizer', e.target.value)}
+                          placeholder="e.g. CYMSYS"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold text-gray-700">Description</label>
+                        <textarea
+                          rows={2}
+                          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                          value={activity.description}
+                          onChange={(e) => handleActivityFieldChange(idx, 'description', e.target.value)}
+                          placeholder="e.g. Description of session activities..."
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Speaker / Presenter</label>
-                <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.speaker} onChange={(e) => setForm({ ...form, speaker: e.target.value })} />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Venue / Location</label>
-                <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Organizer</label>
-                <input className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.organizer} onChange={(e) => setForm({ ...form, organizer: e.target.value })} />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Description</label>
-                <textarea rows={3} className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <button
+                  type="button"
+                  onClick={handleAddActivityBlock}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary hover:text-primary py-3 text-sm font-semibold text-gray-600 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Activity Block</span>
+                </button>
               </div>
 
               {/* Image Upload & Previews */}
