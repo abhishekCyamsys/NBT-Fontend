@@ -1,61 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
-import { CalendarPlus, Trash2, Edit2, FileUp, X, RefreshCw, Plus, Upload, ChevronDown, ChevronRight } from 'lucide-react';
-import { apiService, type EventSession, type CreateSessionDto } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { CalendarPlus, Trash2, Edit2, FileUp, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
+import { apiService, type EventSession } from '../../services/api';
 import Loader from '../../components/Loader';
 import { useEventContext } from '../../context/EventContext';
 
-interface ActivityState {
-  id?: string;
-  title: string;
-  description: string;
-  speaker: string;
-  venue: string;
-  startTime: string;
-  endTime: string;
-  organizer: string;
-}
-
-interface SessionFormState {
-  category: string;
-  sessionDate: string;
-}
-
 export default function SessionsPage() {
+  const navigate = useNavigate();
   const { activeEventId } = useEventContext();
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // S3 Session Images State
-  const [sessionImages, setSessionImages] = useState<string[]>([]);
-  const [uploadingImage, setUploadingImage] = useState(false);
-
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<SessionFormState>({
-    category: 'Children Activities',
-    sessionDate: ''
-  });
-  const [activities, setActivities] = useState<ActivityState[]>([
-    {
-      title: '',
-      description: '',
-      speaker: '',
-      venue: '',
-      startTime: '',
-      endTime: '',
-      organizer: ''
-    }
-  ]);
-  const [originalEditKey, setOriginalEditKey] = useState<{ date: string; category: string } | null>(null);
-  const [saving, setSaving] = useState(false);
   const [expandedGroupKeys, setExpandedGroupKeys] = useState<string[]>([]);
-
-  // Categories
-  const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
-  const availableCategories = Array.from(new Set([...categories.map(c => c.name), ...sessions.map(s => s.category)]));
-
-  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
 
   // CSV Import
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,25 +32,12 @@ export default function SessionsPage() {
   } | null>(null);
 
   useEffect(() => {
-    void loadCategories();
-  }, []);
-
-  useEffect(() => {
     if (activeEventId) {
       void loadSessions(activeEventId);
     } else {
       setSessions([]);
     }
   }, [activeEventId]);
-
-  const loadCategories = async () => {
-    try {
-      const data = await apiService.getAdminCategories();
-      setCategories(data);
-    } catch (e) {
-      console.error('Failed to load categories', e);
-    }
-  };
 
   const loadSessions = async (eventId: string) => {
     setLoading(true);
@@ -144,218 +86,6 @@ export default function SessionsPage() {
         setConfirmConfig(null);
       }
     });
-  };
-
-  const handleOpenCreate = () => {
-    setForm({
-      category: 'Children Activities',
-      sessionDate: ''
-    });
-    setActivities([
-      {
-        title: '',
-        description: '',
-        speaker: '',
-        venue: '',
-        startTime: '',
-        endTime: '',
-        organizer: ''
-      }
-    ]);
-    setSessionImages([]);
-    setIsEditing(false);
-    setOriginalEditKey(null);
-    setIsFormOpen(true);
-  };
-
-  const handleOpenEdit = (session: EventSession) => {
-    const sessionDateStr = new Date(session.sessionDate).toISOString().split('T')[0];
-    
-    // Find all matching sessions on the same Date and Category to load them as a group of activities!
-    const matching = sessions.filter(
-      s => new Date(s.sessionDate).toISOString().split('T')[0] === sessionDateStr && s.category === session.category
-    );
-
-    setForm({
-      category: session.category,
-      sessionDate: sessionDateStr
-    });
-
-    setActivities(matching.map(s => {
-      const start = new Date(s.startTime);
-      const end = new Date(s.endTime);
-      const formatTimePart = (d: Date) => {
-        return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-      };
-      return {
-        id: s.id,
-        title: s.title,
-        description: s.description || '',
-        speaker: s.speaker || '',
-        venue: s.venue || '',
-        startTime: formatTimePart(start),
-        endTime: formatTimePart(end),
-        organizer: s.organizer || '',
-      };
-    }));
-
-    let imgs: string[] = [];
-    const sessionWithImages = matching.find(s => s.sessionImageUrls);
-    if (sessionWithImages && sessionWithImages.sessionImageUrls) {
-      try {
-        imgs = JSON.parse(sessionWithImages.sessionImageUrls);
-      } catch (e) {
-        console.error('Failed to parse session images', e);
-      }
-    }
-    setSessionImages(imgs);
-
-    setIsEditing(true);
-    setOriginalEditKey({
-      date: sessionDateStr,
-      category: session.category
-    });
-    setIsFormOpen(true);
-  };
-
-  const handleAddActivityBlock = () => {
-    setActivities(prev => [
-      ...prev,
-      {
-        title: '',
-        description: '',
-        speaker: '',
-        venue: '',
-        startTime: '',
-        endTime: '',
-        organizer: ''
-      }
-    ]);
-  };
-
-  const handleRemoveActivityBlock = (indexToRemove: number) => {
-    setActivities(prev => prev.filter((_, i) => i !== indexToRemove));
-  };
-
-  const handleActivityFieldChange = (index: number, field: keyof ActivityState, value: string) => {
-    setActivities(prev => prev.map((act, i) => {
-      if (i === index) {
-        return { ...act, [field]: value };
-      }
-      return act;
-    }));
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingImage(true);
-    try {
-      const { uploadUrl, imageUrl } = await apiService.getPresignedUploadUrl(file.name, file.type);
-      
-      const res = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`Upload failed with status ${res.status}`);
-      }
-
-      setSessionImages(prev => [...prev, imageUrl]);
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || 'Failed to upload image');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleRemoveImage = (indexToRemove: number) => {
-    setSessionImages(prev => prev.filter((_, i) => i !== indexToRemove));
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeEventId) return;
-    setSaving(true);
-    try {
-      if (isEditing && originalEditKey) {
-        const dateChanged = form.sessionDate !== originalEditKey.date;
-        const categoryChanged = form.category !== originalEditKey.category;
-
-        if (dateChanged || categoryChanged) {
-          // If date or category changed, delete the original sessions first to avoid duplicates/orphans
-          const originalSessions = sessions.filter(
-            s => new Date(s.sessionDate).toISOString().split('T')[0] === originalEditKey.date && s.category === originalEditKey.category
-          );
-          if (originalSessions.length > 0) {
-            const originalIds = originalSessions.map(s => s.id);
-            await apiService.bulkDeleteAdminSessions(activeEventId, originalIds);
-          }
-          
-          const createPayload: CreateSessionDto = {
-            date: form.sessionDate,
-            images: sessionImages,
-            activities: activities.map(act => ({
-              title: act.title,
-              description: act.description || '',
-              category: form.category,
-              speaker: act.speaker || '',
-              venue: act.venue || '',
-              startTime: new Date(`${form.sessionDate}T${act.startTime}:00`).toISOString(),
-              endTime: new Date(`${form.sessionDate}T${act.endTime}:00`).toISOString(),
-              organizer: act.organizer || '',
-            }))
-          };
-          await apiService.createAdminSession(activeEventId, createPayload);
-        } else {
-          const syncPayload: any = {
-            date: form.sessionDate,
-            images: sessionImages,
-            activities: activities.map(act => ({
-              id: act.id,
-              title: act.title,
-              description: act.description || '',
-              category: form.category,
-              speaker: act.speaker || '',
-              venue: act.venue || '',
-              startTime: new Date(`${form.sessionDate}T${act.startTime}:00`).toISOString(),
-              endTime: new Date(`${form.sessionDate}T${act.endTime}:00`).toISOString(),
-              organizer: act.organizer || '',
-            }))
-          };
-          await apiService.syncAdminSessions(activeEventId, syncPayload);
-        }
-      } else {
-        const createPayload: CreateSessionDto = {
-          date: form.sessionDate,
-          images: sessionImages,
-          activities: activities.map(act => ({
-            title: act.title,
-            description: act.description || '',
-            category: form.category,
-            speaker: act.speaker || '',
-            venue: act.venue || '',
-            startTime: new Date(`${form.sessionDate}T${act.startTime}:00`).toISOString(),
-            endTime: new Date(`${form.sessionDate}T${act.endTime}:00`).toISOString(),
-            organizer: act.organizer || '',
-          })),
-        };
-        await apiService.createAdminSession(activeEventId, createPayload);
-      }
-      setIsFormOpen(false);
-      await loadSessions(activeEventId);
-    } catch (er) {
-      const msg = er && typeof er === 'object' && 'message' in er ? String((er as any).message) : 'Failed to save session';
-      setModalMessage({ title: 'Error', message: msg, type: 'error' });
-    } finally {
-      setSaving(false);
-    }
   };
 
   const handleDeleteGroup = (date: string, category: string, count: number, ids: string[]) => {
@@ -438,23 +168,7 @@ export default function SessionsPage() {
     }
   };
 
-  const handleAddCategory = async () => {
-    const name = newCategoryName.trim();
-    if (name) {
-      try {
-        if (!categories.find(c => c.name === name)) {
-          await apiService.createAdminCategory(name);
-          await loadCategories();
-        }
-        setForm({ ...form, category: name });
-        setNewCategoryName('');
-        setIsAddCategoryOpen(false);
-      } catch (er) {
-        const msg = er && typeof er === 'object' && 'message' in er ? String((er as any).message) : 'Failed to add category';
-        setModalMessage({ title: 'Error', message: msg, type: 'error' });
-      }
-    }
-  };
+
 
   const formatTime = (isoString: string) => {
     return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -584,7 +298,7 @@ export default function SessionsPage() {
           )}
 
           <button
-            onClick={handleOpenCreate}
+            onClick={() => navigate('/admin/sessions/create')}
             disabled={!activeEventId}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white shadow hover:bg-primary-dark disabled:opacity-50"
           >
@@ -746,7 +460,7 @@ export default function SessionsPage() {
                                       
                                       <div className="flex items-center gap-2">
                                         <button
-                                          onClick={() => handleOpenEdit(catGroup.activities[0])}
+                                          onClick={() => navigate(`/admin/sessions/edit?date=${dateGroup.dateKey}&category=${encodeURIComponent(catGroup.categoryName)}`)}
                                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 rounded-md transition-colors shadow-sm"
                                           title={`Edit ${catGroup.categoryName}`}
                                         >
@@ -835,247 +549,7 @@ export default function SessionsPage() {
         </div>
       </div>
 
-      {/* Flyout Form */}
-      <div
-        className={`fixed inset-0 z-50 transform pointer-events-auto transition-transform duration-300 ease-in-out ${isFormOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-      >
-        <div
-          className={`absolute inset-0 transition-opacity duration-300 ${isFormOpen ? 'bg-black/30 opacity-100' : 'opacity-0 pointer-events-none'}`}
-        />
-        <div className="absolute right-0 top-0 h-full w-full max-w-xl bg-white shadow-xl flex flex-col pointer-events-auto border-l border-gray-200">
-          <div className="flex items-center justify-between border-b px-6 py-5 bg-gray-50">
-            <h2 className="text-xl font-bold text-gray-900">{isEditing ? 'Edit Session' : 'Add Session'}</h2>
-            <button onClick={() => setIsFormOpen(false)} className="text-gray-500 hover:text-gray-700 bg-gray-200 p-1.5 rounded-full hover:bg-gray-300 transition-colors">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-6">
-            <form id="sessionForm" onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">Category <span className="text-red-500">*</span></label>
-                  <div className="flex gap-2">
-                    <select required className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none bg-white" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                      <option value="" disabled>Select category</option>
-                      {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <button type="button" onClick={() => setIsAddCategoryOpen(true)} className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 transition-colors" title="Add Category">
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">Date <span className="text-red-500">*</span></label>
-                  <input type="date" required className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none" value={form.sessionDate} onChange={(e) => setForm({ ...form, sessionDate: e.target.value })} />
-                </div>
-              </div>
 
-              {/* Dynamic Activities List */}
-              <div className="border-t border-gray-100 pt-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-900">Activities / Sessions Schedule</span>
-                </div>
-
-                <div className="space-y-6">
-                  {activities.map((activity, idx) => (
-                    <div key={idx} className="border-2 border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3 relative">
-                      <div className="flex justify-between items-center border-b border-gray-100 pb-2 mb-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Activity #{idx + 1}</h4>
-                        {activities.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveActivityBlock(idx)}
-                            className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-md transition-colors"
-                            title="Remove Activity"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="mb-1 block text-xs font-semibold text-gray-700">Activity Title <span className="text-red-500">*</span></label>
-                        <input
-                          required
-                          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                          value={activity.title}
-                          onChange={(e) => handleActivityFieldChange(idx, 'title', e.target.value)}
-                          placeholder="e.g. Storytelling session"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="mb-1 block text-xs font-semibold text-gray-700">Start Time <span className="text-red-500">*</span></label>
-                          <input
-                            type="time"
-                            required
-                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                            value={activity.startTime}
-                            onChange={(e) => handleActivityFieldChange(idx, 'startTime', e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1 block text-xs font-semibold text-gray-700">End Time <span className="text-red-500">*</span></label>
-                          <input
-                            type="time"
-                            required
-                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                            value={activity.endTime}
-                            onChange={(e) => handleActivityFieldChange(idx, 'endTime', e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="mb-1 block text-xs font-semibold text-gray-700">Speaker / Presenter</label>
-                          <input
-                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                            value={activity.speaker}
-                            onChange={(e) => handleActivityFieldChange(idx, 'speaker', e.target.value)}
-                            placeholder="e.g. Rajesh Pandey"
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1 block text-xs font-semibold text-gray-700">Venue / Location</label>
-                          <input
-                            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                            value={activity.venue}
-                            onChange={(e) => handleActivityFieldChange(idx, 'venue', e.target.value)}
-                            placeholder="e.g. Children Corner"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="mb-1 block text-xs font-semibold text-gray-700">Organizer</label>
-                        <input
-                          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                          value={activity.organizer}
-                          onChange={(e) => handleActivityFieldChange(idx, 'organizer', e.target.value)}
-                          placeholder="e.g. CYMSYS"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-1 block text-xs font-semibold text-gray-700">Description</label>
-                        <textarea
-                          rows={2}
-                          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                          value={activity.description}
-                          onChange={(e) => handleActivityFieldChange(idx, 'description', e.target.value)}
-                          placeholder="e.g. Description of session activities..."
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAddActivityBlock}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary hover:text-primary py-3 text-sm font-semibold text-gray-600 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Activity Block</span>
-                </button>
-              </div>
-
-              {/* Image Upload & Previews */}
-              <div className="border-t border-gray-100 pt-4 space-y-3">
-                <label className="block text-xs font-semibold text-gray-700">Session Images</label>
-                
-                {/* Images Preview Strip */}
-                {sessionImages.length > 0 && (
-                  <div className="flex flex-wrap gap-3">
-                    {sessionImages.map((url, idx) => (
-                      <div key={url} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-sm">
-                        <img src={url} alt={`Session image ${idx}`} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-black/90 rounded-full text-white transition-opacity shadow-sm"
-                          title="Remove Image"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Upload Button */}
-                <div className="flex items-center gap-3">
-                  <label className={`inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 cursor-pointer ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
-                    {uploadingImage ? <RefreshCw className="h-4 w-4 animate-spin text-gray-500" /> : <Upload className="h-4 w-4 text-gray-500" />}
-                    <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                    />
-                  </label>
-                  {uploadingImage && <span className="text-xs text-gray-400 animate-pulse">Uploading directly to S3...</span>}
-                </div>
-              </div>
-
-            </form>
-          </div>
-          <div className="border-t border-gray-200 p-6 bg-gray-50 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsFormOpen(false)}
-              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-              disabled={saving}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              form="sessionForm"
-              disabled={saving}
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-white hover:bg-primary-dark disabled:opacity-50 inline-flex items-center gap-2 shadow-sm"
-            >
-              {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
-              {saving ? 'Saving...' : 'Save Session'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Add Category Modal */}
-      {isAddCategoryOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => setIsAddCategoryOpen(false)} />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="mb-4 text-lg font-bold text-gray-900">Add Category</h3>
-            <div className="mb-4">
-              <label className="mb-1 block text-xs font-semibold text-gray-700">Category Name</label>
-              <input
-                autoFocus
-                className="block w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddCategory();
-                  }
-                }}
-                placeholder="e.g. Workshop"
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsAddCategoryOpen(false)} className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Cancel</button>
-              <button onClick={handleAddCategory} className="px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-white hover:bg-primary-dark">Add</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Alert Modal */}
       {modalMessage && (

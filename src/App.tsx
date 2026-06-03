@@ -22,6 +22,7 @@ import AdminEventsPage from './pages/admin/EventsPage';
 import AdminEntriesPage from './pages/admin/EntriesPage';
 import AdminTicketsPage from './pages/admin/TicketsPage';
 import AdminSessionsPage from './pages/admin/SessionsPage';
+import AdminSessionFormPage from './pages/admin/SessionFormPage';
 import AdminSettingsPage from './pages/admin/SettingsPage';
 
 function App() {
@@ -57,6 +58,8 @@ function App() {
           <Route path="entries" element={<AdminEntriesPage />} />
           <Route path="tickets" element={<AdminTicketsPage />} />
           <Route path="sessions" element={<AdminSessionsPage />} />
+          <Route path="sessions/create" element={<AdminSessionFormPage />} />
+          <Route path="sessions/edit" element={<AdminSessionFormPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
         </Route>
