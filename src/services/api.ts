@@ -1,10 +1,12 @@
 import * as XLSX from 'xlsx';
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
-const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "http://localhost:3001";
-const VISITOR_BASE_URL = import.meta.env.VITE_VISITOR_BASE_URL || "http://localhost:3002";
-const VOLUNTEER_BASE_URL = import.meta.env.VITE_VOLUNTEER_BASE_URL || "http://localhost:3004";
-const ADMIN_BASE_URL = import.meta.env.VITE_ADMIN_BASE_URL || "http://localhost:3005";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const AUTH_BASE_URL = API_BASE_URL || import.meta.env.VITE_AUTH_BASE_URL || "http://localhost:3001";
+const VISITOR_BASE_URL = API_BASE_URL || import.meta.env.VITE_VISITOR_BASE_URL || "http://localhost:3002";
+const VOLUNTEER_BASE_URL = API_BASE_URL || import.meta.env.VITE_VOLUNTEER_BASE_URL || "http://localhost:3004";
+const ADMIN_BASE_URL = API_BASE_URL || import.meta.env.VITE_ADMIN_BASE_URL || "http://localhost:3005";
+
 
 const DEFAULT_EVENT_ID = import.meta.env.VITE_EVENT_ID || "";
 
@@ -852,7 +854,7 @@ class ApiService {
     const params = new URLSearchParams();
     if (date) params.append("date", date);
     if (category) params.append("category", category);
-    
+
     const query = params.toString() ? `?${params.toString()}` : "";
     return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/public/events/slug/${encodeURIComponent(slug)}/sessions${query}`);
   }
@@ -927,7 +929,7 @@ class ApiService {
       const worksheet = workbook.Sheets[firstSheetName];
       text = XLSX.utils.sheet_to_csv(worksheet);
     }
-    
+
     return httpJson<{ success: boolean; importedCount: number; errors: string[] }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/import`, {
       method: "POST",
       headers: this.adminHeaders(),
