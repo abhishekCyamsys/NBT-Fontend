@@ -371,6 +371,33 @@ export interface AdminCreateVolunteerPayload {
   mobileNumber: string;
 }
 
+export interface WhatsappEventConfig {
+  id: string;
+  whatsappNumber: string;
+  eventId: string;
+  eventName: string;
+  eventSlug: string | null;
+  eventStatus: string | null;
+  childCount: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateWhatsappEventConfigPayload {
+  whatsappNumber: string;
+  eventId: string;
+  childCount: number;
+  isActive?: boolean;
+}
+
+export interface UpdateWhatsappEventConfigPayload {
+  whatsappNumber?: string;
+  eventId?: string;
+  childCount?: number;
+  isActive?: boolean;
+}
+
 export interface AdminEvent {
   id: string;
   eventName: string;
@@ -993,6 +1020,36 @@ class ApiService {
       method: "PATCH",
       headers: this.adminHeaders(),
       body: payload,
+    });
+  }
+
+  async getWhatsappEventConfigs() {
+    return httpJson<WhatsappEventConfig[]>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events`, {
+      method: "GET",
+      headers: this.adminHeaders(),
+    });
+  }
+
+  async createWhatsappEventConfig(payload: CreateWhatsappEventConfigPayload) {
+    return httpJson<WhatsappEventConfig>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events`, {
+      method: "POST",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
+  async updateWhatsappEventConfig(configId: string, payload: UpdateWhatsappEventConfigPayload) {
+    return httpJson<WhatsappEventConfig>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events/${encodeURIComponent(configId)}`, {
+      method: "PATCH",
+      headers: this.adminHeaders(),
+      body: payload,
+    });
+  }
+
+  async deleteWhatsappEventConfig(configId: string) {
+    return httpJson<{ success: boolean }>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events/${encodeURIComponent(configId)}`, {
+      method: "DELETE",
+      headers: this.adminHeaders(),
     });
   }
 }
