@@ -18,6 +18,11 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        const sessionValid = await apiService.ensureAdminSession();
+        if (!sessionValid) {
+          return;
+        }
+
         const data = await apiService.getAdminEvents();
         setEvents(data);
         

@@ -23,13 +23,18 @@ import AdminEntriesPage from './pages/admin/EntriesPage';
 import AdminTicketsPage from './pages/admin/TicketsPage';
 import AdminSessionsPage from './pages/admin/SessionsPage';
 import AdminSessionFormPage from './pages/admin/SessionFormPage';
-import AdminSettingsPage from './pages/admin/SettingsPage';
+import AdminSettingsLayout from './pages/admin/settings/SettingsLayout';
+import WhatsappSettingsPage from './pages/admin/settings/WhatsappSettingsPage';
+import WhatsappEventRoutingPage from './pages/admin/settings/WhatsappEventRoutingPage';
+import SmsSettingsPage from './pages/admin/settings/SmsSettingsPage';
+import EventBaseUrlSettingsPage from './pages/admin/settings/EventBaseUrlSettingsPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/register/:eventId" element={<VisitorLogin />} />
         <Route path="/:eventId" element={<VisitorLogin />} />
         <Route path="/landing" element={<Landing />} />
         <Route path="/visitor/login" element={<VisitorLogin />} />
@@ -60,7 +65,13 @@ function App() {
           <Route path="sessions" element={<AdminSessionsPage />} />
           <Route path="sessions/create" element={<AdminSessionFormPage />} />
           <Route path="sessions/edit" element={<AdminSessionFormPage />} />
-          <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="settings" element={<AdminSettingsLayout />}>
+            <Route index element={<Navigate to="whatsapp" replace />} />
+            <Route path="whatsapp" element={<WhatsappSettingsPage />} />
+            <Route path="whatsapp-events" element={<WhatsappEventRoutingPage />} />
+            <Route path="sms" element={<SmsSettingsPage />} />
+            <Route path="event-base-url" element={<EventBaseUrlSettingsPage />} />
+          </Route>
           <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
