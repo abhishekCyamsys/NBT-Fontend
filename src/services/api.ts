@@ -13,10 +13,30 @@ const DEFAULT_EVENT_ID = import.meta.env.VITE_EVENT_ID || "";
 const STORAGE_KEYS = {
   visitorJwt: "visitor_jwt",
   volunteerJwt: "volunteer_jwt",
+  volunteerRefreshToken: "volunteer_refresh_token",
   adminJwt: "admin_jwt",
+  adminRefreshToken: "admin_refresh_token",
 } as const;
 
 export type ApiError = { message: string; status?: number };
+
+function isApiError(error: unknown): error is ApiError {
+  return typeof error === "object" && error !== null && "message" in error;
+}
+
+function getJwtExpiryMs(token: string): number | null {
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return null;
+    const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(normalized)) as { exp?: number };
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+type AuthRole = "admin" | "volunteer";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -184,7 +204,9 @@ export interface VolunteerLoginPayload {
 }
 
 export interface VolunteerLoginResponse {
-  accessToken: string; // volunteer JWT
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: string;
 }
 
 export interface VolunteerRegisterPayload {
@@ -227,6 +249,14 @@ export interface AdminLoginPayload {
 
 export interface AdminLoginResponse {
   accessToken: string;
+  refreshToken: string;
+  expiresIn: string;
+}
+
+export interface AuthTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: string;
 }
 
 export interface AdminDashboardStats {
@@ -384,6 +414,26 @@ export interface WhatsappEventConfig {
   updatedAt: string;
 }
 
+export interface PlatformSettings {
+  eventBaseUrl: string;
+  source: 'database' | 'environment';
+  registerPath: string;
+  exampleRegisterUrl: string | null;
+  envFallback: string | null;
+}
+
+export interface UpdatePlatformSettingsPayload {
+  eventBaseUrl: string;
+  syncExistingEvents?: boolean;
+}
+
+export interface UpdatePlatformSettingsResult {
+  eventBaseUrl: string;
+  source: 'database';
+  registerPath: string;
+  syncedEventCount: number;
+}
+
 export interface CreateWhatsappEventConfigPayload {
   whatsappNumber: string;
   eventId: string;
@@ -486,6 +536,8 @@ export interface PaginatedResponse<T> {
 
 
 class ApiService {
+  private refreshLocks: Partial<Record<AuthRole, Promise<boolean> | null>> = {};
+
   private getVisitorJwt(): string | null {
     return localStorage.getItem(STORAGE_KEYS.visitorJwt);
   }
@@ -635,6 +687,9 @@ class ApiService {
     if (res?.accessToken) {
       localStorage.setItem(STORAGE_KEYS.volunteerJwt, res.accessToken);
     }
+    if (res?.refreshToken) {
+      localStorage.setItem(STORAGE_KEYS.volunteerRefreshToken, res.refreshToken);
+    }
     return res;
   }
 
@@ -720,7 +775,134 @@ class ApiService {
     if (res?.accessToken) {
       localStorage.setItem(STORAGE_KEYS.adminJwt, res.accessToken);
     }
+    if (res?.refreshToken) {
+      localStorage.setItem(STORAGE_KEYS.adminRefreshToken, res.refreshToken);
+    }
     return res;
+  }
+
+  async ensureAdminSession(): Promise<boolean> {
+    const jwt = this.getAdminJwt();
+    const refreshToken = localStorage.getItem(STORAGE_KEYS.adminRefreshToken);
+    if (!jwt || !refreshToken) {
+      return false;
+    }
+
+    const expiry = getJwtExpiryMs(jwt);
+    if (expiry && expiry - Date.now() > 5 * 60 * 1000) {
+      return true;
+    }
+
+    return this.refreshSession("admin");
+  }
+
+  private persistAuthTokens(role: AuthRole, tokens: AuthTokenResponse) {
+    if (role === "admin") {
+      localStorage.setItem(STORAGE_KEYS.adminJwt, tokens.accessToken);
+      localStorage.setItem(STORAGE_KEYS.adminRefreshToken, tokens.refreshToken);
+      return;
+    }
+
+    localStorage.setItem(STORAGE_KEYS.volunteerJwt, tokens.accessToken);
+    localStorage.setItem(STORAGE_KEYS.volunteerRefreshToken, tokens.refreshToken);
+  }
+
+  private clearAuthSession(role: AuthRole) {
+    if (role === "admin") {
+      localStorage.removeItem(STORAGE_KEYS.adminJwt);
+      localStorage.removeItem(STORAGE_KEYS.adminRefreshToken);
+      return;
+    }
+
+    localStorage.removeItem(STORAGE_KEYS.volunteerJwt);
+    localStorage.removeItem(STORAGE_KEYS.volunteerRefreshToken);
+  }
+
+  private getRefreshToken(role: AuthRole): string | null {
+    return localStorage.getItem(
+      role === "admin" ? STORAGE_KEYS.adminRefreshToken : STORAGE_KEYS.volunteerRefreshToken,
+    );
+  }
+
+  private async refreshSession(role: AuthRole): Promise<boolean> {
+    if (!this.refreshLocks[role]) {
+      this.refreshLocks[role] = this.performRefresh(role).finally(() => {
+        this.refreshLocks[role] = null;
+      });
+    }
+
+    return this.refreshLocks[role]!;
+  }
+
+  private async performRefresh(role: AuthRole): Promise<boolean> {
+    const refreshToken = this.getRefreshToken(role);
+    if (!refreshToken) {
+      return false;
+    }
+
+    try {
+      const res = await httpJson<AuthTokenResponse>(`${AUTH_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        body: { refreshToken },
+      });
+
+      if (!res?.accessToken || !res?.refreshToken) {
+        this.clearAuthSession(role);
+        return false;
+      }
+
+      this.persistAuthTokens(role, res);
+      return true;
+    } catch {
+      this.clearAuthSession(role);
+      return false;
+    }
+  }
+
+  private async withAuthRetry<T>(role: AuthRole, request: () => Promise<T>): Promise<T> {
+    try {
+      return await request();
+    } catch (error) {
+      if (isApiError(error) && error.status === 401) {
+        const refreshed = await this.refreshSession(role);
+        if (refreshed) {
+          return request();
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async adminJson<T>(
+    url: string,
+    options: {
+      method?: HttpMethod;
+      headers?: HeadersInit;
+      body?: unknown;
+      signal?: AbortSignal;
+    } = {},
+  ): Promise<T> {
+    return this.withAuthRetry("admin", () =>
+      httpJson<T>(url, {
+        ...options,
+        headers: { ...this.adminHeaders(), ...(options.headers ?? {}) },
+      }),
+    );
+  }
+
+  private async adminDownload(
+    url: string,
+    options: {
+      headers?: HeadersInit;
+      signal?: AbortSignal;
+    } = {},
+  ): Promise<void> {
+    return this.withAuthRetry("admin", () =>
+      httpDownload(url, {
+        ...options,
+        headers: { ...this.adminHeaders(), ...(options.headers ?? {}) },
+      }),
+    );
   }
 
   private adminHeaders(): HeadersInit {
@@ -734,10 +916,9 @@ class ApiService {
 
   async getAdminDashboard(eventId?: string) {
     const query = eventId ? `?eventId=${eventId}` : '';
-    return httpJson<AdminDashboardStats>(`${ADMIN_BASE_URL}/admin/dashboard${query}`, {
+    return this.adminJson<AdminDashboardStats>(`${ADMIN_BASE_URL}/admin/dashboard${query}`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async getAdminAnalytics() {
@@ -746,9 +927,8 @@ class ApiService {
 
   async getAdminVisitors(page = 1, limit = 50, signal?: AbortSignal, eventId?: string) {
     const eventQuery = eventId ? `&eventId=${eventId}` : '';
-    return httpJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors?page=${page}&limit=${limit}${eventQuery}`, {
+    return this.adminJson<PaginatedResponse<AdminVisitor>>(`${ADMIN_BASE_URL}/admin/visitors?page=${page}&limit=${limit}${eventQuery}`, {
       method: "GET",
-      headers: this.adminHeaders(),
       signal,
     });
   }
@@ -756,9 +936,8 @@ class ApiService {
   async getAdminEntries(page = 1, limit = 50, signal?: AbortSignal, fields?: string[], eventId?: string) {
     const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
     const eventQuery = eventId ? `&eventId=${eventId}` : '';
-    return httpJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
+    return this.adminJson<PaginatedResponse<AdminEntry>>(`${ADMIN_BASE_URL}/admin/entries?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
       method: "GET",
-      headers: this.adminHeaders(),
       signal,
     });
   }
@@ -766,9 +945,8 @@ class ApiService {
   async getAdminTickets(page = 1, limit = 50, signal?: AbortSignal, fields?: string[], eventId?: string) {
     const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
     const eventQuery = eventId ? `&eventId=${eventId}` : '';
-    const res = await httpJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
+    const res = await this.adminJson<PaginatedResponse<AdminTicket>>(`${ADMIN_BASE_URL}/admin/tickets?page=${page}&limit=${limit}${fieldsQuery}${eventQuery}`, {
       method: "GET",
-      headers: this.adminHeaders(),
       signal,
     });
     if (res && res.data) {
@@ -783,96 +961,80 @@ class ApiService {
 
   async getAdminVolunteers(page = 1, limit = 50, signal?: AbortSignal, fields?: string[]) {
     const fieldsQuery = fields ? `&fields=${fields.join(",")}` : "";
-    return httpJson<PaginatedResponse<AdminVolunteer>>(`${ADMIN_BASE_URL}/admin/volunteers?page=${page}&limit=${limit}${fieldsQuery}`, {
+    return this.adminJson<PaginatedResponse<AdminVolunteer>>(`${ADMIN_BASE_URL}/admin/volunteers?page=${page}&limit=${limit}${fieldsQuery}`, {
       method: "GET",
-      headers: this.adminHeaders(),
       signal,
     });
   }
 
   async createAdminVolunteer(payload: AdminCreateVolunteerPayload) {
-    return httpJson<AdminVolunteer>(`${ADMIN_BASE_URL}/admin/volunteers`, {
+    return this.adminJson<AdminVolunteer>(`${ADMIN_BASE_URL}/admin/volunteers`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async createAdminEvent(payload: AdminCreateEventPayload) {
-    return httpJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events`, {
+    return this.adminJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async updateAdminEvent(eventId: string, payload: Partial<AdminCreateEventPayload>) {
-    return httpJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`, {
+    return this.adminJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`, {
       method: "PATCH",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async getAdminEvents() {
-    return httpJson<AdminEvent[]>(`${ADMIN_BASE_URL}/admin/events`, {
+    return this.adminJson<AdminEvent[]>(`${ADMIN_BASE_URL}/admin/events`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async getAdminEventById(eventId: string) {
-    return httpJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`, {
+    return this.adminJson<AdminEvent>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async deactivateAdminEvent(eventId: string) {
-    return httpJson<void>(
+    return this.adminJson<void>(
       `${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/deactivate`,
       {
         method: "POST",
-        headers: this.adminHeaders(),
-      },
+        },
     );
   }
 
   async deleteAdminEvent(eventId: string) {
-    return httpJson<{ success: boolean }>(
+    return this.adminJson<{ success: boolean }>(
       `${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}`,
       {
         method: "DELETE",
-        headers: this.adminHeaders(),
-      },
+        },
     );
   }
 
   async exportAdminVisitors(eventId?: string) {
     const eventQuery = eventId ? `?eventId=${eventId}` : '';
-    return httpDownload(`${ADMIN_BASE_URL}/admin/visitors/export${eventQuery}`, {
-      headers: this.adminHeaders(),
-    });
+    return this.adminDownload(`${ADMIN_BASE_URL}/admin/visitors/export${eventQuery}`);
   }
 
   async exportAdminVolunteers() {
-    return httpDownload(`${ADMIN_BASE_URL}/admin/volunteers/export`, {
-      headers: this.adminHeaders(),
-    });
+    return this.adminDownload(`${ADMIN_BASE_URL}/admin/volunteers/export`);
   }
 
   async exportAdminEntries(eventId?: string) {
     const eventQuery = eventId ? `?eventId=${eventId}` : '';
-    return httpDownload(`${ADMIN_BASE_URL}/admin/entries/export${eventQuery}`, {
-      headers: this.adminHeaders(),
-    });
+    return this.adminDownload(`${ADMIN_BASE_URL}/admin/entries/export${eventQuery}`);
   }
 
   async exportAdminTickets(eventId?: string) {
     const eventQuery = eventId ? `?eventId=${eventId}` : '';
-    return httpDownload(`${ADMIN_BASE_URL}/admin/tickets/export${eventQuery}`, {
-      headers: this.adminHeaders(),
-    });
+    return this.adminDownload(`${ADMIN_BASE_URL}/admin/tickets/export${eventQuery}`);
   }
 
   // --- SESSION MANAGEMENT ---
@@ -892,55 +1054,48 @@ class ApiService {
     if (category) params.append("category", category);
 
     const query = params.toString() ? `?${params.toString()}` : "";
-    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions${query}`, {
+    return this.adminJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions${query}`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async getPresignedUploadUrl(fileName: string, fileType: string) {
-    return httpJson<{ uploadUrl: string, imageUrl: string }>(`${ADMIN_BASE_URL}/admin/sessions/presigned-url`, {
+    return this.adminJson<{ uploadUrl: string, imageUrl: string }>(`${ADMIN_BASE_URL}/admin/sessions/presigned-url`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: { fileName, fileType },
     });
   }
 
   async createAdminSession(eventId: string, payload: CreateSessionDto) {
-    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions`, {
+    return this.adminJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async syncAdminSessions(eventId: string, payload: SyncSessionDto) {
-    return httpJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/sync`, {
+    return this.adminJson<EventSession[]>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/sync`, {
       method: "PUT",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async updateAdminSession(eventId: string, sessionId: string, payload: UpdateSessionPayload) {
-    return httpJson<EventSession>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/${encodeURIComponent(sessionId)}`, {
+    return this.adminJson<EventSession>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/${encodeURIComponent(sessionId)}`, {
       method: "PATCH",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async deleteAdminSession(eventId: string, sessionId: string) {
-    return httpJson<{ success: boolean }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/${encodeURIComponent(sessionId)}`, {
+    return this.adminJson<{ success: boolean }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/${encodeURIComponent(sessionId)}`, {
       method: "DELETE",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async bulkDeleteAdminSessions(eventId: string, sessionIds: string[]) {
-    return httpJson<{ count: number }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/bulk-delete`, {
+    return this.adminJson<{ count: number }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/bulk-delete`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: { sessionIds },
     });
   }
@@ -957,9 +1112,8 @@ class ApiService {
       text = XLSX.utils.sheet_to_csv(worksheet);
     }
 
-    return httpJson<{ success: boolean; importedCount: number; errors: string[] }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/import`, {
+    return this.adminJson<{ success: boolean; importedCount: number; errors: string[] }>(`${ADMIN_BASE_URL}/admin/events/${encodeURIComponent(eventId)}/sessions/import`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: { csvContent: text },
     });
   }
@@ -967,16 +1121,14 @@ class ApiService {
   // --- CATEGORIES ---
 
   async getAdminCategories(): Promise<{ id: string; name: string }[]> {
-    return httpJson<{ id: string; name: string }[]>(`${ADMIN_BASE_URL}/admin/categories`, {
+    return this.adminJson<{ id: string; name: string }[]>(`${ADMIN_BASE_URL}/admin/categories`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async createAdminCategory(name: string): Promise<{ id: string; name: string }> {
-    return httpJson<{ id: string; name: string }>(`${ADMIN_BASE_URL}/admin/categories`, {
+    return this.adminJson<{ id: string; name: string }>(`${ADMIN_BASE_URL}/admin/categories`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: { name },
     });
   }
@@ -987,69 +1139,76 @@ class ApiService {
 
   logoutVolunteer() {
     localStorage.removeItem(STORAGE_KEYS.volunteerJwt);
+    localStorage.removeItem(STORAGE_KEYS.volunteerRefreshToken);
   }
 
   logoutAdmin() {
     localStorage.removeItem(STORAGE_KEYS.adminJwt);
+    localStorage.removeItem(STORAGE_KEYS.adminRefreshToken);
   }
 
   async getWhatsappSettings() {
-    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+    return this.adminJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async updateWhatsappSettings(payload: any) {
-    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
+    return this.adminJson<any>(`${ADMIN_BASE_URL}/admin/settings/whatsapp`, {
       method: "PATCH",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async getSmsSettings() {
-    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/sms`, {
+    return this.adminJson<any>(`${ADMIN_BASE_URL}/admin/settings/sms`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async updateSmsSettings(payload: any) {
-    return httpJson<any>(`${ADMIN_BASE_URL}/admin/settings/sms`, {
+    return this.adminJson<any>(`${ADMIN_BASE_URL}/admin/settings/sms`, {
       method: "PATCH",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async getWhatsappEventConfigs() {
-    return httpJson<WhatsappEventConfig[]>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events`, {
+    return this.adminJson<WhatsappEventConfig[]>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events`, {
       method: "GET",
-      headers: this.adminHeaders(),
-    });
+      });
   }
 
   async createWhatsappEventConfig(payload: CreateWhatsappEventConfigPayload) {
-    return httpJson<WhatsappEventConfig>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events`, {
+    return this.adminJson<WhatsappEventConfig>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events`, {
       method: "POST",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async updateWhatsappEventConfig(configId: string, payload: UpdateWhatsappEventConfigPayload) {
-    return httpJson<WhatsappEventConfig>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events/${encodeURIComponent(configId)}`, {
+    return this.adminJson<WhatsappEventConfig>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events/${encodeURIComponent(configId)}`, {
       method: "PATCH",
-      headers: this.adminHeaders(),
       body: payload,
     });
   }
 
   async deleteWhatsappEventConfig(configId: string) {
-    return httpJson<{ success: boolean }>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events/${encodeURIComponent(configId)}`, {
+    return this.adminJson<{ success: boolean }>(`${ADMIN_BASE_URL}/admin/settings/whatsapp-events/${encodeURIComponent(configId)}`, {
       method: "DELETE",
-      headers: this.adminHeaders(),
+      });
+  }
+
+  async getPlatformSettings() {
+    return this.adminJson<PlatformSettings>(`${ADMIN_BASE_URL}/admin/settings/event-base-url`, {
+      method: "GET",
+      });
+  }
+
+  async updatePlatformSettings(payload: UpdatePlatformSettingsPayload) {
+    return this.adminJson<UpdatePlatformSettingsResult>(`${ADMIN_BASE_URL}/admin/settings/event-base-url`, {
+      method: "PATCH",
+      body: payload,
     });
   }
 }

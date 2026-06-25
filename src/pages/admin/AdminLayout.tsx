@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, UserPlus, CalendarRange, Clock, ScanLine, Ticket, LogOut, Menu, X, ChevronDown, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { EventProvider, useEventContext } from '../../context/EventContext';
@@ -24,7 +24,16 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const token = localStorage.getItem('admin_jwt');
-    if (!token) navigate('/admin/login', { replace: true });
+    if (!token) {
+      navigate('/admin/login', { replace: true });
+      return;
+    }
+
+    void apiService.ensureAdminSession().then((valid) => {
+      if (!valid) {
+        navigate('/admin/login', { replace: true });
+      }
+    });
   }, [navigate]);
 
   useEffect(() => {
@@ -65,6 +74,7 @@ function AdminLayoutContent({
   toggleSidebar: () => void;
 }) {
   const { events, activeEventId, setActiveEventId, isLoadingEvents } = useEventContext();
+  const location = useLocation();
 
   const NavItems = ({ onNavigate, collapsed }: { onNavigate?: () => void; collapsed?: boolean }) => (
     <nav className="flex-1 space-y-1 px-3 py-4">
@@ -74,11 +84,13 @@ function AdminLayoutContent({
             to={l.to}
             onClick={onNavigate}
             title={collapsed ? l.label : undefined}
-            className={({ isActive }) =>
+            className={() =>
                 [
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-                    isActive 
-                        ? 'bg-primary text-white shadow-md' 
+                    (l.to === '/admin/settings'
+                      ? location.pathname.startsWith('/admin/settings')
+                      : location.pathname === l.to || location.pathname.startsWith(`${l.to}/`))
+                        ? 'bg-primary text-white shadow-md'
                         : 'text-slate-300 hover:bg-slate-800/50 hover:text-white',
                     collapsed ? 'justify-center px-0' : '',
                 ].join(' ')
